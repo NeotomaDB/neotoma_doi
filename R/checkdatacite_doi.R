@@ -24,7 +24,8 @@ if (is.null(isdoithere)) {
     recdatecreated timestamp,
     recdatemodified timestamp
     CONSTRAINT good_doi CHECK (doi ~* '^10.\\d{4,9}/[-._;()/:A-Z0-9]+$')
-  )"
+  );
+  "
 
   result <- try(dbExecute(con, create))
   if (! ("try-error" %in% class(result))) {
@@ -44,11 +45,16 @@ rows <- 500
 # records, with 500 records per page.
 
 while (check == FALSE) {
-  doi_set[[i]] <- rdatacite::dc_search(q = "publisher:[Neotoma]",
+  doi_set[[i]] <- try(rdatacite::dc_search(q = "publisher:[Neotoma]",
                             fl = c("doi", "title",
                                    "relatedIdentifier", "uploaded"),
                             rows = rows,
-                            start = (i - 1) * rows)
+                            start = (i - 1) * rows))
+
+  if ("try-error" %in% class(doi_set[[i]])) {
+    stop("Could not connect to DataCite.")
+  }
+
   if (nrow(doi_set[[i]]) == rows) {
     i <- i + 1
   } else {

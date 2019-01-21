@@ -1,4 +1,4 @@
-assign_doi <- function(ds_id, post = FALSE) {
+assign_doi <- function(ds_id, con, post = FALSE) {
 
   doi_sens <- readr::read_lines("doi_sens.txt")
 
@@ -8,13 +8,6 @@ assign_doi <- function(ds_id, post = FALSE) {
   library(XML, quietly = TRUE, verbose = FALSE)
   library(jsonlite, quietly = TRUE, verbose = FALSE)
 
-  con <- dbConnect(drv = "PostgreSQL",
-                  host = doi_sens[1],
-                  port = doi_sens[2],
-                dbname = doi_sens[3],
-                  user = doi_sens[4],
-              password = doi_sens[5])
-
   frozen <- fromJSON(paste0("http://api-dev.neotomadb.org/v2.0/data/download/",
                             ds_id), simplifyVector = FALSE)$data[[1]]
   assertthat::are_equal(frozen$datasetid, ds_id)
@@ -23,21 +16,19 @@ assign_doi <- function(ds_id, post = FALSE) {
                              ds_id, "/contacts"),
                       simplifyVector = FALSE)$data[[1]]$contact
 
-  schema <- XML::xmlSchemaParse("data//metadata.xsd")
+  schema <- XML::xmlSchemaParse("data/metadata.xsd")
 
   # Generating the new XML framework and associated namespaces:
   doc <- XML::newXMLDoc()
 
   root <- XML::newXMLNode("resource",
                           namespaceDefinitions = c("http://datacite.org/schema/kernel-4",
-                                                   "xsi" = "http://www.w3.org/2001/XMLSchema-instance"),
+                                                   "xsi" = "http://www.w3.org/2001/XMLSchema-instance",
+                                                   "xml" = "http://www.w3.org/XML/1998/namespace"),
                           attrs = c("xsi:schemaLocation" = "http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4/metadata.xsd"),
                           doc = doc)
-
-  # This is the empty shoulder for assigning DOIs:
-  XML::newXMLNode("identifier", "10.21233/N3",
-                  attrs = c("identifierType" = "DOI"),
-                  parent = root)
+  
+  XML::newXMLNode("version", "1.0", parent = root)
 
   # This creator stuff is just done one at a time.
   # Using the dataset PIs.
@@ -187,7 +178,7 @@ assign_doi <- function(ds_id, post = FALSE) {
                    attrs = rights))
 
   # Locations
-  loc <- fromJSON(frozen$frozendata$data$dataset$site$geography)
+  loc <- fromJSON(frozen$download$data$dataset$site$geography)
 
   XML::newXMLNode("geoLocations", parent = root)
 
@@ -233,24 +224,21 @@ assign_doi <- function(ds_id, post = FALSE) {
 
     dc_pw <- readr::read_lines("datacite_auth.txt")
 
-    urlbase <- "https://mds.test.datacite.org/"
+    urlbase <- "https://mds.test.datacite.org/metadata"
 
     # See documentation at https://support.datacite.org/docs/mds-api-guide
 
-    put_head <- c("Content-Type" = "application/xml;charset=UTF-8",
+    put_head <- c("Content-Type" = "Content-Type: application/xml;charset=UTF-8",
                         "Accept" = "text/plain")
     ul_file <- paste0("xml_files/", ds_id, "_output.xml")
-    r = httr::PUT(url = urlbase,
-                   # url = paste0(urlbase, "/10.21233/N3"),
+    r = httr::POST(url = paste0(urlbase, "/10.21381"),
                    config = httr::authenticate(user = dc_pw[1],
                                                password = dc_pw[2]),
                    httr::add_headers(put_head),
                    body = upload_file(ul_file, type = "xml"))
 
   } else {
-
     out_doi <- NA
-
   }
 
   list(doc, out_doi)

@@ -20,8 +20,8 @@ This is currently a project under development.  All participants are expected to
 
 1.  A Neotoma data steward uploads a dataset to Neotoma (Tilia -> Tilia API -> NeotomaDB)
 
-2.  Chron job running in `data-dev` checks daily using postgres function `ndb.lastdayds()`
-*   The function checks for all datasets without an entry in the `ndb.datasetdoi` table that have been generated more recently than the past 24hrs.
+2.  Chron job running in `data-dev` checks daily for all records generated at least one week ago, without a "frozen" version (query in the [neotoma_doi repository](https://github.com/NeotomaDB/neotoma_doi/blob/master/sql/generatingFrozen.sql))
+*   The script generates a frozen version of the dataset in the table `doi.frozen` in the database.
 *   The function returns a list of aggregated datasetids along with the contact information for the dataset PI.
 *   DOIs will be reserved for all datasets that have been generated.
 *   DOIs will be added to the `ndb.datasetdoi` table *but* the `doi.frozen` entry will not be generated.
