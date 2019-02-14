@@ -8,6 +8,8 @@ assign_doi <- function(ds_id, con, post = FALSE) {
   library(XML, quietly = TRUE, verbose = FALSE)
   library(jsonlite, quietly = TRUE, verbose = FALSE)
 
+  # This endpoint serves as a location for "frozen" datasets.  These were added from
+  # database records within the week of being first generated.
   frozen <- fromJSON(paste0("http://api-dev.neotomadb.org/v2.0/data/download/",
                             ds_id), simplifyVector = FALSE)$data[[1]]
   assertthat::are_equal(frozen$datasetid, ds_id)
@@ -27,9 +29,13 @@ assign_doi <- function(ds_id, con, post = FALSE) {
                                                    "xml" = "http://www.w3.org/XML/1998/namespace"),
                           attrs = c("xsi:schemaLocation" = "http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4/metadata.xsd"),
                           doc = doc)
-  
+
   XML::newXMLNode("version", "1.0", parent = root)
 
+  XML::newXMLNode("identifier", 
+                  attrs = list("identifierType" = "DOI"),
+                  parent = root)
+  
   # This creator stuff is just done one at a time.
   # Using the dataset PIs.
   XML::newXMLNode("creators", parent = root)
@@ -205,7 +211,9 @@ assign_doi <- function(ds_id, con, post = FALSE) {
 
   schema_test <- XML::xmlSchemaValidate("data/metadata.xsd", doc)
 
-  if (!schema_test$status == 0) {
+  schema_ident <- grep("identifier", schema_test$errors[[1]]$msg) == 1
+
+  if (!schema_test$status == 0 & !schema_ident) {
 
     # There's an error
     message("There was a validation error for this dataset.")
@@ -230,12 +238,17 @@ assign_doi <- function(ds_id, con, post = FALSE) {
 
     put_head <- c("Content-Type" = "Content-Type: application/xml;charset=UTF-8",
                         "Accept" = "text/plain")
+
     ul_file <- paste0("xml_files/", ds_id, "_output.xml")
-    r = httr::POST(url = paste0(urlbase, "/10.21381"),
+    r =  httr::POST(  url = paste0(urlbase, "/10.21381"),
                    config = httr::authenticate(user = dc_pw[1],
                                                password = dc_pw[2]),
                    httr::add_headers(put_head),
-                   body = upload_file(ul_file, type = "xml"))
+                     body = upload_file(ul_file, type = "xml"))
+    
+    if (http_status(r)$category == "Success") {
+      doi <- stringr::str_
+    }
 
   } else {
     out_doi <- NA
