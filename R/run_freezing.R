@@ -16,7 +16,6 @@ con <- dbConnect(PostgreSQL(),
 
 isfrzthere <- dbGetQuery(con, "SELECT COUNT(*) FROM doi.frozen")
 
-
 if (is.null(isfrzthere)) {
    create <- "CREATE TABLE IF NOT EXISTS
                        doi.frozen(datasetid integer CONSTRAINT goodds CHECK (doi.inds(datasetid)),
