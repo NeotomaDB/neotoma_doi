@@ -1,0 +1,15 @@
+Dataset %1$d has been recently added to Neotoma.  You can see metadata for this record at https://data-dev.neotomadb.org/%1$d.
+
+You are receiving this email because you are either the PI on record for this dataset, or you are listed as a steward for the constituent database.
+
+Within 5 days a DOI will be registered for this dataset.  Before the DOI is minted we would like to ask that you check the dataset for completeness using Tilia or by checking the record in Neotoma Explorer or on the landing pages.  Data can be modified after a DOI has been minted, but the "frozen" copy of the dataset will not be changed after this time.
+
+If you have any questions please contact us directly.
+
+
+Simon Goring
+
+Assistant Research Scientist
+University of Wisconsin-Madison
+
+and the Neotoma Paleoecology Team
