@@ -20,7 +20,6 @@ if (is.null(isfrzthere)) {
    create <- "CREATE TABLE IF NOT EXISTS
                        doi.frozen(datasetid integer CONSTRAINT goodds CHECK (doi.inds(datasetid)),
                        download jsonb NOT null,
-                       doi text,
                        recdatecreated TIMESTAMP DEFAULT NOW(),
                        recmodified TIMESTAMP DEFAULT NOW());
               GRANT SELECT, INSERT ON doi.frozen TO doiwriter;"
@@ -37,7 +36,7 @@ datalength <- "
 	FROM ndb.datasets as ds
 	LEFT OUTER JOIN ndb.datasetdoi as dsdoi ON ds.datasetid = dsdoi.datasetid
 	JOIN ndb.datasetsubmissions AS dss ON dss.datasetid = ds.datasetid
-	WHERE (ds.datasetid, dsdoi.doi) NOT IN (SELECT datasetid, doi FROM doi.frozen) AND
+  	WHERE (ds.datasetid) NOT IN (SELECT datasetid FROM doi.frozen) AND
       	ds.recdatecreated < NOW() - INTERVAL '1 week' AND
 		    dss.submissiondate < NOW() - INTERVAL '1 week'
 "
