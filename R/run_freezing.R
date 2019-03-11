@@ -19,10 +19,10 @@ isfrzthere <- dbGetQuery(con, "SELECT COUNT(*) FROM doi.frozen")
 if (is.null(isfrzthere)) {
    create <- "CREATE TABLE IF NOT EXISTS
                        doi.frozen(datasetid integer CONSTRAINT goodds CHECK (doi.inds(datasetid)),
-                       record jsonb NOT null,
+                       download jsonb NOT null,
+                       doi text,
                        recdatecreated TIMESTAMP DEFAULT NOW(),
                        recmodified TIMESTAMP DEFAULT NOW());
-              ALTER TABLE ndb.datasetdoi OWNER TO sug335;
               GRANT SELECT, INSERT ON doi.frozen TO doiwriter;"
 
    result <- try(dbExecute(con, create))
