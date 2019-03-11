@@ -254,9 +254,14 @@ assign_doi <- function(ds_id, con, post = FALSE) {
                    httr::add_headers(put_head),
                      body = upload_file(ul_file, type = "xml"))
 
+    insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi)
+                    VALUES ($1, $2)
+                    RETURNING datasetid"
+
     if (http_status(r)$category == "Success") {
       # DOI comes from HTTP response:
       out_doi <- stringr::str_match(r, "OK \\((.*)\\)")[2]
+      dbSendQuery(con, insertQuery, c(ds_id, out_doi))
     }
 
   } else {
