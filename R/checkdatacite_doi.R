@@ -15,9 +15,9 @@ con <- dbConnect(PostgreSQL(),
                  password = con_string$password,
                  dbname = con_string$database)
 
-isdoithere <- dbGetQuery(con, "SELECT COUNT(*) FROM ndb.datasetdoi")
-
-if (is.null(isdoithere)) {
+if (RPostgreSQL::dbExistsTable(con, 'ndb.datasetdoi')) {
+  # Make the datasetdoi table.  This isn't in the Postgres DB
+  # migration, so may need to be added de novo.
   create <- "CREATE TABLE ndb.datasetdoi (
     datasetid integer REFERENCES ndb.datasets(datasetid),
     doi character varying,
@@ -31,7 +31,6 @@ if (is.null(isdoithere)) {
   if (! ("try-error" %in% class(result))) {
     print("Created doi dataset table.")
   }
-
 }
 
 existing_dois <- dbGetQuery(con, "SELECT * FROM ndb.datasetdoi")
