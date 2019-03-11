@@ -14,4 +14,15 @@ con <- dbConnect(PostgreSQL(),
 
 source("R/assign_doi.R")
 
-assign_doi(1001, con, post = FALSE)
+missingdoi <- "SELECT fr.datasetid
+               FROM          doi.frozen AS fr
+               LEFT JOIN ndb.datasetdoi AS dsdoi ON dsdoi.datasetid = fr.datasetid
+               WHERE doi IS NULL"
+
+dsids <-  dbGetQuery(con, missingdoi)
+
+for(i in unlist(dsids)) {
+  assign_doi(i, con, post = TRUE)
+}
+
+RPostgreSQL::dbDisconnect(con)
