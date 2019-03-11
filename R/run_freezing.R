@@ -16,7 +16,7 @@ con <- dbConnect(PostgreSQL(),
 
 isfrzthere <- dbGetQuery(con, "SELECT COUNT(*) FROM doi.frozen")
 
-if (is.null(isfrzthere)) {
+if (RPostgreSQL::dbExistsTable(con, "doi.frozen")) {
    create <- "CREATE TABLE IF NOT EXISTS
                        doi.frozen(datasetid integer CONSTRAINT goodds CHECK (doi.inds(datasetid)),
                        download jsonb NOT null,
