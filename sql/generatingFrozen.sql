@@ -1,4 +1,4 @@
-INSERT INTO doi.frozen (datasetid, record, recdatecreated)
+INSERT INTO doi.frozen (datasetid, download, recdatecreated)
 WITH ds AS (
 	SELECT DISTINCT ds.datasetid
 	FROM ndb.datasets as ds
@@ -9,6 +9,6 @@ WITH ds AS (
 		    dss.submissiondate < NOW() - INTERVAL '1 week'
 )
 SELECT df.datasetid,
-		df.frozendata AS record,
+		df.download AS download,
 		current_timestamp AS recdatecreated
-FROM doi.doifreeze((SELECT array_agg(datasetid) FROM ds)) as df
+FROM doi.doifreeze((SELECT array_agg(datasetid) FROM ds)) as df;
