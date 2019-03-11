@@ -35,19 +35,17 @@ The DOI metadata is stored with DataCite and is generated from [a script in this
 
 1.  A Neotoma data steward uploads a dataset to Neotoma (Tilia -> Tilia API -> NeotomaDB)
 
-2.  Chron job running in `data-dev` checks daily for all records generated at least one week ago, without a "frozen" version (query in the [neotoma_doi repository](https://github.com/NeotomaDB/neotoma_doi/blob/master/sql/generatingFrozen.sql))
-*   The script generates a frozen version of the dataset in the table `doi.frozen` in the database.
-*   The function returns a list of aggregated datasetids along with the contact information for the dataset PI.
-*   DOIs will be reserved for all datasets that have been generated.
-*   DOIs will be added to the `ndb.datasetdoi` table *but* the `doi.frozen` entry will not be generated.
-*   [**not currently implemented**] An email will be sent to each dataset PI with a listed email address.  The email will confirm that a DOI or a set of DOIs have been reserved, and that the PI has one week to review the relevant data.  It will also indicate that certain metadata (ORCIDs, email, site notes or descriptions) would assist in improving the usefulness of the data.  Provide a link to the Explorer and Landing Pages for the data record and a link to (?something?) to facilitate adding the required metadata.
+2.  Chron job running in `data-dev` checks for all records generated at least one week ago, without a "frozen" version (query in the [neotoma_doi repository](https://github.com/NeotomaDB/neotoma_doi/blob/master/sql/generatingFrozen.sql))
+  *   The script generates a frozen version of the dataset in the table `doi.frozen` in the database.
+  *   The function returns a list of aggregated datasetids along with the contact information for the dataset PI.
+  *   [**not currently implemented**] [An email](https://github.com/NeotomaDB/neotoma_doi/blob/master/data/email_text.txt) will be sent to each dataset PI with a listed email address. The email will confirm that a DOI or a set of DOIs have been reserved, and that the PI has one week to review the relevant data. It will also indicate that certain metadata (ORCIDs, email, site notes or descriptions) would assist in improving the usefulness of the data. Provide a link to the Explorer and Landing Pages for the data record and a link to (?something?) to facilitate adding the required metadata.
 
 3.  The PI of record can contact the steward to update the metadata (or a token can be generated to allow the PI to update things?)
 
-4.  The same chron job in #2 will identify records where the `ndb.dataset` entry is older than 7 days, the dataset has an entry in `ndb.datasetdoi` and no entry in `doi.frozen`.  This assumes that PIs and stewards have had an opportunity to revise their datasets.
-*   For each entry generate the frozen dataset using `doi.doifreeze()`.
-*   For each entry run the function `assign_doi()` to build the DataCite XML file, and post the DOI metadata
-*   Send a second email to each dataset PI indicating the DOIs have been successfully minted.
+4.  The same chron job in #2 will identify records where the `ndb.dataset` entry is older than 14 days, the dataset has an entry in `doi.frozen` and no entry in `ndb.datasetdoi`.  This assumes that PIs and stewards have had an opportunity to revise their datasets.
+  *   For each entry `UPDATE` the frozen dataset using `doi.doifreeze()`.
+  *   For each entry run the function `assign_doi()` to build the DataCite XML file, and post the DOI metadata
+  *   Send an email to each dataset PI indicating the DOIs have been successfully minted.
 
 ## Funding
 

@@ -14,4 +14,4 @@ con <- dbConnect(PostgreSQL(),
 
 source("R/assign_doi.R")
 
-assign_doi(1001, con, post = TRUE)
+assign_doi(1001, con, post = FALSE)
