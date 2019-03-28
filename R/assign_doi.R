@@ -1,4 +1,4 @@
-assign_doi <- function(ds_id, con, post = FALSE) {
+assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
 
   library(dplyr, quietly = TRUE, verbose = FALSE)
   library(RPostgreSQL, quietly = TRUE, verbose = FALSE)
@@ -256,22 +256,32 @@ assign_doi <- function(ds_id, con, post = FALSE) {
                         "Accept" = "text/plain")
 
     ul_file <- paste0("xml_files/", ds_id, "_output.xml")
+
     r = httr::POST(url = paste0(urlbase, "/10.21381"),
                    config = httr::authenticate(user = dc_pw[1],
                                                password = dc_pw[2]),
                    httr::add_headers(put_head),
                      body = upload_file(ul_file, type = "xml"))
 
-    insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi)
-                    VALUES ($1, $2)
-                    RETURNING datasetid"
-
     if (http_status(r)$category == "Success") {
       # DOI comes from HTTP response:
       out_doi <- stringr::str_match(r, "OK \\((.*)\\)")[2]
-      dbSendQuery(con, insertQuery, c(ds_id, out_doi))
-    }
 
+      doids <- paste0(Sys.time(),
+                      ", ", ds_id, ", ", out_doi)
+
+      readr::write_lines(doids,
+        path="minting.log",
+        append = TRUE)
+
+      if (dbpost == TRUE) {
+
+        insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi)
+                        VALUES ($1, $2)
+                        RETURNING datasetid"
+        dbSendQuery(con, insertQuery, c(ds_id, out_doi))
+      }
+    }
   } else {
     out_doi <- NA
   }
