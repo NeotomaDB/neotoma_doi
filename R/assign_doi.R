@@ -20,9 +20,9 @@ assign_doi <- function(ds_id, con, post = FALSE) {
   if (length(contact$data) > 0) {
     contact <- contact$data[[1]]$contact
   } else {
-    contact <- data.frame(contactid = NA,
+    contact <- list(data.frame(contactid = NA,
                           fullName = 'None listed',
-                          address = 'None listed')
+                          address = 'None listed'))
   }
 
   schema <- XML::xmlSchemaParse("data/metadata.xsd")
