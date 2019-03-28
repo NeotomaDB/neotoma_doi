@@ -32,7 +32,7 @@ if (RPostgreSQL::dbExistsTable(con, "doi.frozen")) {
 # All datasets that have been created and submitted more than
 # one week ago, without any frozen entry.
 datalength <- "
-  SELECT COUNT(DISTINCT ds.datasetid)
+  SELECT DISTINCT ds.datasetid
 	FROM ndb.datasets as ds
 	LEFT OUTER JOIN ndb.datasetdoi AS dsdoi ON  ds.datasetid = dsdoi.datasetid
 	JOIN    ndb.datasetsubmissions AS dss   ON dss.datasetid = ds.datasetid
@@ -45,6 +45,7 @@ datalength <- "
 
 howmany <- dbGetQuery(con, datalength) %>%
   unlist() %>%
+  length() %>%
   as.numeric()
 
 cat(sprintf("There are %d datasets that need to be frozen.\n", howmany))
@@ -52,6 +53,26 @@ cat(sprintf("There are %d datasets that need to be frozen.\n", howmany))
 # Might be slow.  Generates the "frozen" records for the datasets.
 
 run_freeze <- dbExecute(con, readr::read_file("sql/generatingFrozen.sql"))
+
+howmany_after <- dbGetQuery(con, datalength) %>%
+  unlist() %>%
+  length() %>%
+  as.numeric()
+
+cat(sprintf("There are %d datasets that could not be frozen:\n",
+            howmany_after))
+
+if (howmany_after > 0) {
+  cat("Adding unfrozen dataset IDs to the log file at `freeze.log`.")
+  unfrozen <- dbGetQuery(con, datalength) %>%
+    unlist()  %>%
+    paste0(collapse = ",") %>%
+    paste0(Sys.time(), ", [", ., "]")
+
+  readr::write_lines(unfrozen,
+    path="freeze.log",
+    append = TRUE)
+}
 
 # Now with "frozen" records and the list of datasets without
 # DOIs we can then generate the neccessary DOIs.
