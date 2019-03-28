@@ -14,8 +14,6 @@ con <- dbConnect(PostgreSQL(),
                  password = con_string$password,
                  dbname = con_string$database)
 
-isfrzthere <- dbGetQuery(con, "SELECT COUNT(*) FROM doi.frozen")
-
 if (RPostgreSQL::dbExistsTable(con, "doi.frozen")) {
    create <- "CREATE TABLE IF NOT EXISTS
                        doi.frozen(datasetid integer CONSTRAINT goodds CHECK (doi.inds(datasetid)),
@@ -31,23 +29,29 @@ if (RPostgreSQL::dbExistsTable(con, "doi.frozen")) {
 
 }
 
+# All datasets that have been created and submitted more than
+# one week ago, without any frozen entry.
 datalength <- "
   SELECT COUNT(DISTINCT ds.datasetid)
 	FROM ndb.datasets as ds
-	LEFT OUTER JOIN ndb.datasetdoi as dsdoi ON ds.datasetid = dsdoi.datasetid
-	JOIN ndb.datasetsubmissions AS dss ON dss.datasetid = ds.datasetid
-  	WHERE (ds.datasetid) NOT IN (SELECT datasetid FROM doi.frozen) AND
+	LEFT OUTER JOIN ndb.datasetdoi AS dsdoi ON  ds.datasetid = dsdoi.datasetid
+	JOIN    ndb.datasetsubmissions AS dss   ON dss.datasetid = ds.datasetid
+
+  WHERE (ds.datasetid) NOT IN (SELECT datasetid FROM doi.frozen) AND
       	ds.recdatecreated < NOW() - INTERVAL '1 week' AND
-		    dss.submissiondate < NOW() - INTERVAL '1 week'
+		    dss.submissiondate < NOW() - INTERVAL '1 week' AND
+        ds.datasettypeid > 1
 "
 
-howmany <- dbGetQuery(con, datalength) %>% unlist() %>% as.numeric()
+howmany <- dbGetQuery(con, datalength) %>%
+  unlist() %>%
+  as.numeric()
 
 cat(sprintf("There are %d datasets that need to be frozen.\n", howmany))
 
 # Might be slow.  Generates the "frozen" records for the datasets.
 
-run_freeze <- dbGetQuery(con, readr::read_file("sql/generatingFrozen.sql"))
+run_freeze <- dbExecute(con, readr::read_file("sql/generatingFrozen.sql"))
 
 # Now with "frozen" records and the list of datasets without
 # DOIs we can then generate the neccessary DOIs.

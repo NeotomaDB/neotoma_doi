@@ -6,7 +6,8 @@ WITH ds AS (
 	JOIN ndb.datasetsubmissions AS dss ON dss.datasetid = ds.datasetid
 	WHERE (ds.datasetid) NOT IN (SELECT datasetid FROM doi.frozen) AND
       	ds.recdatecreated < NOW() - INTERVAL '1 week' AND
-		    dss.submissiondate < NOW() - INTERVAL '1 week'
+		    dss.submissiondate < NOW() - INTERVAL '1 week' AND
+				ds.datasettypeid > 1
 )
 SELECT df.datasetid,
 		df.download AS download,
