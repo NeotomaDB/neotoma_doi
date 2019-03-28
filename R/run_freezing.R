@@ -63,7 +63,7 @@ cat(sprintf("There are %d datasets that could not be frozen:\n",
             howmany_after))
 
 if (howmany_after > 0) {
-  cat("Adding unfrozen dataset IDs to the log file at `freeze.log`.")
+  cat("Adding unfrozen dataset IDs to the log file at `freeze.log`.\n")
   unfrozen <- dbGetQuery(con, datalength) %>%
     unlist()  %>%
     paste0(collapse = ",") %>%
