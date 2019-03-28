@@ -15,7 +15,15 @@ assign_doi <- function(ds_id, con, post = FALSE) {
 
   contact <- fromJSON(paste0("http://api-dev.neotomadb.org/v2.0/data/datasets/",
                              ds_id, "/contacts"),
-                      simplifyVector = FALSE)$data[[1]]$contact
+                      simplifyVector = FALSE)
+
+  if (length(contact$data) > 0) {
+    contact <- contact$data[[1]]$contact
+  } else {
+    contact <- data.frame(contactid = NA,
+                          fullName = 'None listed',
+                          address = 'None listed')
+  }
 
   schema <- XML::xmlSchemaParse("data/metadata.xsd")
 
