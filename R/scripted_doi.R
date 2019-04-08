@@ -22,7 +22,12 @@ missingdoi <- "SELECT fr.datasetid
 dsids <-  dbGetQuery(con, missingdoi)
 
 for(i in unlist(dsids)) {
-  assign_doi(i, con, post = TRUE, dbpost = FALSE)
+  assign_doi(i, con, post = TRUE, dbpost = FALSE, sandbox = TRUE)
+  if(match(i, dsids) %% 79 == 0) {
+    cat("\n.")
+  } else {
+    cat (".")
+  }
 }
 
 RPostgreSQL::dbDisconnect(con)
