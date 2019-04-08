@@ -1,4 +1,8 @@
-assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
+assign_doi <- function(ds_id,
+                      con,
+                      post = TRUE,
+                      dbpost = FALSE,
+                      sandbox = TRUE) {
 
   library(dplyr, quietly = TRUE, verbose = FALSE)
   library(RPostgreSQL, quietly = TRUE, verbose = FALSE)
@@ -9,16 +13,20 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
   # This endpoint serves as a location for "frozen" datasets.
   # Frozen records were added from database records within the week of being
   # first generated.
-  frozen <- fromJSON(paste0("http://api-dev.neotomadb.org/v2.0/data/download/",
-                            ds_id), simplifyVector = FALSE)$data[[1]]
+
+  froz_api <- paste0("http://api-dev.neotomadb.org/v2.0/data/download/",
+                    ds_id)
+  frozen <- fromJSON(froz_api, simplifyVector = FALSE)$data[[1]]
 
   assertthat::are_equal(frozen$datasetid, ds_id,
     msg = "The dataset id returned by the API is not the same as the one supplied by the user.\n  This is likely an API error.")
   assertthat::assert_that(!is.null(frozen$frozendata),
     msg = "The download API is not returning an element named 'frozendata'.")
 
-  contact <- fromJSON(paste0("http://api-dev.neotomadb.org/v2.0/data/datasets/",
-                             ds_id, "/contacts"),
+  cont_api <- paste0("http://api-dev.neotomadb.org/v2.0/data/datasets/",
+                             ds_id, "/contacts")
+
+  contact <- fromJSON(cont_api,
                       simplifyVector = FALSE)
 
   if (length(contact$data) > 0) {
@@ -248,9 +256,15 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
 
   if (post == TRUE) {
 
-    dc_pw <- readr::read_lines("datacite_auth.txt")
+    dc_pw <- jsonlite::fromJSON("datacite_auth.txt")
 
-    urlbase <- "https://mds.datacite.org/metadata"
+    if (sandbox) {
+      urlbase <- "https://mds.datacite.org/metadata"
+      handle <- dc_pw$handle$test
+    } else {
+      urlbase <- "https://mds.test.datacite.org/metadata"
+      handle <- dc_pw$handle$prod
+    }
 
     # See documentation at https://support.datacite.org/docs/mds-api-guide
 
@@ -261,9 +275,9 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
 
     ul_file <- paste0("xml_files/", ds_id, "_output.xml")
 
-    r = httr::POST(url = paste0(urlbase, "/10.21233"),
-                   config = httr::authenticate(user = dc_pw[1],
-                                               password = dc_pw[2]),
+    r = httr::POST(url = paste0(urlbase, "/", handle),
+                   config = httr::authenticate(user = dc_pw$user,
+                                               password = dc_pw$pw),
                    httr::add_headers(put_head),
                      body = upload_file(ul_file, type = "xml"))
 
@@ -278,7 +292,7 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
         path="minting.log",
         append = TRUE)
 
-      if (dbpost == TRUE) {
+      if (dbpost == TRUE & !sandbox) {
 
         insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi)
                         VALUES ($1, $2)
