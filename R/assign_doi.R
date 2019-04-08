@@ -11,7 +11,11 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
   # first generated.
   frozen <- fromJSON(paste0("http://api-dev.neotomadb.org/v2.0/data/download/",
                             ds_id), simplifyVector = FALSE)$data[[1]]
-  assertthat::are_equal(frozen$datasetid, ds_id)
+
+  assertthat::are_equal(frozen$datasetid, ds_id,
+    msg = "The dataset id returned by the API is not the same as the one supplied by the user.\n  This is likely an API error.")
+  assertthat::assert_that(!is.null(frozen$frozendata),
+    msg = "The download API is not returning an element named 'frozendata'.")
 
   contact <- fromJSON(paste0("http://api-dev.neotomadb.org/v2.0/data/datasets/",
                              ds_id, "/contacts"),
@@ -72,10 +76,10 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
                   " dataset")
 
   XML::newXMLNode("titles", parent = root)
-  XML::newXMLNode("title",
-                  title,
-                  attrs = c("xml:lang" = "en-us"),
-                  parent = root[["titles"]])
+  suppressWarnings(XML::newXMLNode("title",
+                                    title,
+                                    attrs = c("xml:lang" = "en-us"),
+                                    parent = root[["titles"]]))
 
   # Add publisher information:
   XML::newXMLNode("publisher", "Neotoma Paleoecological Database",
@@ -182,13 +186,13 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
 
   # Description
   newXMLNode("descriptions", parent  = root)
-  newXMLNode("description",
+  suppressWarnings(newXMLNode("description",
              paste0("Raw data for the ",
                     title,
                     " obtained from the Neotoma Paleoecological Database."),
              parent = root[["descriptions"]],
              attrs = list("descriptionType" = "Abstract",
-                          "xml:lang" = "EN"))
+                          "xml:lang" = "EN")))
 
   # Number 16
   rights <- c("rightsURI" =
@@ -198,7 +202,7 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
                    attrs = rights))
 
   # Locations
-  loc <- fromJSON(frozen$download$data$dataset$site$geography)
+  loc <- fromJSON(frozen$frozendata$data$dataset$site$geography)
 
   XML::newXMLNode("geoLocations", parent = root)
 
@@ -246,7 +250,7 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
 
     dc_pw <- readr::read_lines("datacite_auth.txt")
 
-    urlbase <- "https://mds.test.datacite.org/metadata"
+    urlbase <- "https://mds.datacite.org/metadata"
 
     # See documentation at https://support.datacite.org/docs/mds-api-guide
 
@@ -257,7 +261,7 @@ assign_doi <- function(ds_id, con, post = TRUE, dbpost = FALSE) {
 
     ul_file <- paste0("xml_files/", ds_id, "_output.xml")
 
-    r = httr::POST(url = paste0(urlbase, "/10.21381"),
+    r = httr::POST(url = paste0(urlbase, "/10.21233"),
                    config = httr::authenticate(user = dc_pw[1],
                                                password = dc_pw[2]),
                    httr::add_headers(put_head),
