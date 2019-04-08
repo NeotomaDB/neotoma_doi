@@ -156,7 +156,7 @@ assign_doi <- function(ds_id,
                   paste0("data.neotomadb.org/datasets/", ds_id),
                   attrs = list(relationType = "IsMetadataFor",
                                relatedIdentifierType = "URL",
-                               relatedMetadataScheme = "json"),
+                               relatedMetadataScheme = "html"),
                   parent = root[["relatedIdentifiers"]])
 
   # Add DOI tags for the publications as related identifiers:
