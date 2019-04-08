@@ -287,13 +287,6 @@ assign_doi <- function(ds_id,
         # DOI comes from HTTP response:
         out_doi <- stringr::str_match(content(r), "OK \\((.*)\\)")[2]
 
-        doids <- paste0(Sys.time(),
-                        ", ", ds_id, ", ", out_doi)
-
-        readr::write_lines(doids,
-          path="minting.log",
-          append = TRUE)
-
         if (dbpost == TRUE & !sandbox) {
 
           insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi)
@@ -309,6 +302,17 @@ assign_doi <- function(ds_id,
   } else {
     out_doi <- "not posted"
   }
+
+  doids <- paste0(Sys.time(), ", ",
+                       ds_id, ", ", 
+                        post, ", ",
+                      dbpost, ", ",
+                     sandbox, ",",
+                     out_doi)
+
+  readr::write_lines(doids,
+    path="minting.log",
+    append = TRUE)
 
   list(doc, out_doi)
 }
