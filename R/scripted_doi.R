@@ -23,7 +23,7 @@ dsids <-  dbGetQuery(con, missingdoi)
 
 for(i in unlist(dsids)) {
   assign_doi(i, con, post = TRUE, dbpost = FALSE, sandbox = TRUE)
-  if(match(i, dsids) %% 79 == 0) {
+  if((which(i == dsids) %% 79) == 0) {
     cat("\n.")
   } else {
     cat (".")
