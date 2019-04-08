@@ -153,7 +153,7 @@ assign_doi <- function(ds_id,
                                relatedMetadataScheme = "json"),
                   parent = root[["relatedIdentifiers"]])
   XML::newXMLNode("relatedIdentifier",
-                  paste0("data-dev.neotomadb.org/datasets/", ds_id),
+                  paste0("data.neotomadb.org/datasets/", ds_id),
                   attrs = list(relationType = "IsMetadataFor",
                                relatedIdentifierType = "URL",
                                relatedMetadataScheme = "json"),
@@ -304,7 +304,7 @@ assign_doi <- function(ds_id,
   }
 
   doids <- paste0(Sys.time(), ", ",
-                       ds_id, ", ", 
+                       ds_id, ", ",
                         post, ", ",
                       dbpost, ", ",
                      sandbox, ",",
