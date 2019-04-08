@@ -259,10 +259,10 @@ assign_doi <- function(ds_id,
     dc_pw <- jsonlite::fromJSON("datacite_auth.txt")
 
     if (sandbox) {
-      urlbase <- "https://mds.datacite.org/metadata"
+      urlbase <- "https://mds.test.datacite.org/metadata"
       handle <- dc_pw$handle$test
     } else {
-      urlbase <- "https://mds.test.datacite.org/metadata"
+      urlbase <- "https://mds.datacite.org/metadata"
       handle <- dc_pw$handle$prod
     }
 
@@ -275,33 +275,39 @@ assign_doi <- function(ds_id,
 
     ul_file <- paste0("xml_files/", ds_id, "_output.xml")
 
-    r = httr::POST(url = paste0(urlbase, "/", handle),
+    r = try(httr::POST(url = paste0(urlbase, "/", handle),
                    config = httr::authenticate(user = dc_pw$user,
                                                password = dc_pw$pw),
                    httr::add_headers(put_head),
-                     body = upload_file(ul_file, type = "xml"))
+                     body = upload_file(ul_file, type = "xml")))
 
-    if (http_status(r)$category == "Success") {
-      # DOI comes from HTTP response:
-      out_doi <- stringr::str_match(r, "OK \\((.*)\\)")[2]
+    if(!class(r) == "try-error") {
 
-      doids <- paste0(Sys.time(),
-                      ", ", ds_id, ", ", out_doi)
+      if (http_status(r)$category == "Success") {
+        # DOI comes from HTTP response:
+        out_doi <- stringr::str_match(content(r), "OK \\((.*)\\)")[2]
 
-      readr::write_lines(doids,
-        path="minting.log",
-        append = TRUE)
+        doids <- paste0(Sys.time(),
+                        ", ", ds_id, ", ", out_doi)
 
-      if (dbpost == TRUE & !sandbox) {
+        readr::write_lines(doids,
+          path="minting.log",
+          append = TRUE)
 
-        insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi)
-                        VALUES ($1, $2)
-                        RETURNING datasetid"
-        dbSendQuery(con, insertQuery, c(ds_id, out_doi))
+        if (dbpost == TRUE & !sandbox) {
+
+          insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi)
+                          VALUES ($1, $2)
+                          RETURNING datasetid"
+          dbSendQuery(con, insertQuery, c(ds_id, out_doi))
+        }
       }
+    } else {
+      # Add the error message.
+      out_doi <- as.character(attr(r, "condition"))
     }
   } else {
-    out_doi <- NA
+    out_doi <- "not posted"
   }
 
   list(doc, out_doi)
