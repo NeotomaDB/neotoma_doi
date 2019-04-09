@@ -294,6 +294,8 @@ assign_doi <- function(ds_id,
                           RETURNING datasetid"
           dbSendQuery(con, insertQuery, c(ds_id, out_doi))
         }
+      } else {
+        out_doi <- content(r)
       }
     } else {
       # Add the error message.
