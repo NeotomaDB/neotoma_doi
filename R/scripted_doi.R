@@ -22,7 +22,7 @@ missingdoi <- "SELECT fr.datasetid
 dsids <-  dbGetQuery(con, missingdoi)
 
 for(i in unlist(dsids)) {
-  output <- try(assign_doi(i, con, post = TRUE, dbpost = FALSE, sandbox = TRUE))
+  output <- try(assign_doi(i, con, post = TRUE, dbpost = TRUE, sandbox = FALSE))
   if ("try-error" %in% class(output)) {
     doids <- paste0(Sys.time(), ", ",
                          i, ", ",

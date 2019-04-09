@@ -289,8 +289,8 @@ assign_doi <- function(ds_id,
 
         if (dbpost == TRUE & !sandbox) {
 
-          insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi)
-                          VALUES ($1, $2)
+          insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi, recdatecreated)
+                          VALUES ($1, $2, NOW()::timestamp)
                           RETURNING datasetid"
           dbSendQuery(con, insertQuery, c(ds_id, out_doi))
         }
