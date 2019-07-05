@@ -1,4 +1,5 @@
 datacite_dois <- function() {
+  check <- FALSE
   while (check == FALSE) {
     doi_set[[i]] <- try(rdatacite::dc_search(q = "publisher:[Neotoma]",
                               fl = c("doi", "title",
@@ -17,7 +18,8 @@ datacite_dois <- function() {
     }
   }
   neotoma_dois <- do.call(rbind.data.frame, doi_set) %>%
-    unique()
+    unique() %>%
+    mutate(dataset = stringr::str_match(relatedIdentifier, "(downloads/)(\\d*)")[,3])
 
   return(neotoma_dois)
 }
