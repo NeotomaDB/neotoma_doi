@@ -197,7 +197,7 @@ assign_doi <- function(ds_id,
   suppressWarnings(newXMLNode("description",
              paste0("Raw data for the ",
                     title,
-                    " obtained from the Neotoma Paleoecological Database."),
+                    " obtained from the Neotoma Paleoecology Database."),
              parent = root[["descriptions"]],
              attrs = list("descriptionType" = "Abstract",
                           "xml:lang" = "EN")))
@@ -260,10 +260,12 @@ assign_doi <- function(ds_id,
 
     if (sandbox) {
       urlbase <- "https://mds.test.datacite.org/metadata"
-      handle <- dc_pw$handle$test
+      handle <- dc_pw$test$handle
+      password <- dc_pw$test$pw
     } else {
       urlbase <- "https://mds.datacite.org/metadata"
-      handle <- dc_pw$handle$prod
+      handle <- dc_pw$prod$handle
+      password <- dc_pw$prod$pw
     }
 
     # See documentation at https://support.datacite.org/docs/mds-api-guide
@@ -277,7 +279,7 @@ assign_doi <- function(ds_id,
 
     r = try(httr::POST(url = paste0(urlbase, "/", handle),
                    config = httr::authenticate(user = dc_pw$user,
-                                               password = dc_pw$pw),
+                                               password = password),
                    httr::add_headers(put_head),
                      body = upload_file(ul_file, type = "xml")))
 
