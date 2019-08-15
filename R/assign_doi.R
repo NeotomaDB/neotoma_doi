@@ -281,7 +281,7 @@ assign_doi <- function(ds_id,
                    config = httr::authenticate(user = dc_pw$user,
                                                password = password),
                    httr::add_headers(put_head),
-                     body = upload_file(ul_file, type = "xml")))
+                   body = upload_file(ul_file, type = "xml")))
 
     if(!class(r) == "try-error") {
 

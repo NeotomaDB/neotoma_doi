@@ -43,32 +43,11 @@ rows <- 500
 # Check datacite for any Neotoma records.  We're paging through the DataCite
 # records, with 500 records per page.
 
-while (check == FALSE) {
-  doi_set[[i]] <- try(rdatacite::dc_search(q = "publisher:[Neotoma]",
-                            fl = c("doi", "title",
-                                   "relatedIdentifier", "uploaded"),
-                            rows = rows,
-                            start = (i - 1) * rows))
+source('R/datacite_dois.R')
 
-  if ("try-error" %in% class(doi_set[[i]])) {
-    stop("Could not connect to DataCite.")
-  }
-
-  if (nrow(doi_set[[i]]) == rows) {
-    i <- i + 1
-  } else {
-    check <- TRUE
-  }
-}
-
-neotoma_dois <- do.call(rbind.data.frame, doi_set) %>%
-  unique()
+neotoma_dois <- datacite_dois()
 
 cat(sprintf("Found a total of %d records\n", nrow(neotoma_dois)))
-
-neotoma_dois$dataset <- str_match(neotoma_dois$relatedIdentifier,
-                                  "downloads/([0-9]*)")[, 2]  %>%
-  as.numeric()
 
 neotoma_dois <- neotoma_dois %>%
   filter(!(dataset %in% existing_dois$datasetid & doi %in% existing_dois$doi))
