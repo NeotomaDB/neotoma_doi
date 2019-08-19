@@ -291,10 +291,26 @@ assign_doi <- function(ds_id,
 
         if (dbpost == TRUE & !sandbox) {
 
-          insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi, recdatecreated)
-                          VALUES ($1, $2, NOW()::timestamp)
-                          RETURNING datasetid"
-          dbSendQuery(con, insertQuery, c(ds_id, out_doi))
+          doibody <- paste0("url=http://data-dev.neotomadb.org/", ds_id, "\ndoi=", out_doi)
+
+          publish <- httr::PUT(url=paste0("https://mds.datacite.org/doi/", out_doi),
+                               config = httr::authenticate(user = dc_pw$user,
+                                                       password = dc_pw$prod$pw),
+                               content_type('text/plain;charset=UTF-8'),
+                               body=doibody,
+                               encoding="raw")
+
+          if(http_status(publish)$category == "Success") {
+
+            insertQuery <- "INSERT INTO ndb.datasetdoi (datasetid, doi, recdatecreated)
+                            VALUES ($1, $2, NOW()::timestamp)
+                            RETURNING datasetid"
+            rs <- try(dbSendQuery(con, insertQuery, c(ds_id, out_doi)))
+            if(!"try-error" %in% class(rs)) {
+              rs_out <- dbFetch(rs)
+              dbClearResult(rs)
+            }
+          }
         }
       } else {
         out_doi <- content(r)
