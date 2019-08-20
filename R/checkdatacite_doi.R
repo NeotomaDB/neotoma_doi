@@ -1,9 +1,9 @@
 #!/usr/bin/Rscript
 
-library(rdatacite, quietly = TRUE)
-library(RPostgreSQL, quietly = TRUE)
-library(stringr, quietly = TRUE)
-library(jsonlite, quietly = TRUE)
+suppressMessages(library(rdatacite, quietly = TRUE))
+suppressMessages(library(RPostgreSQL, quietly = TRUE))
+suppressMessages(library(stringr, quietly = TRUE))
+suppressMessages(library(jsonlite, quietly = TRUE))
 suppressMessages(library(dplyr, quietly = TRUE))
 
 con_string <- fromJSON("./connect_remote.json")
@@ -15,9 +15,11 @@ con <- dbConnect(PostgreSQL(),
                  password = con_string$password,
                  dbname = con_string$database)
 
+
+# Make the datasetdoi table in the current connected Database.
+# This isn't in the Postgres DB migration, so may need to be added de novo.
 if (RPostgreSQL::dbExistsTable(con, 'ndb.datasetdoi')) {
-  # Make the datasetdoi table.  This isn't in the Postgres DB
-  # migration, so may need to be added de novo.
+
   create <- "CREATE TABLE ndb.datasetdoi (
     datasetid integer REFERENCES ndb.datasets(datasetid),
     doi character varying,
@@ -50,8 +52,11 @@ neotoma_dois <- datacite_dois()
 cat(sprintf("Found a total of %d records\n", nrow(neotoma_dois)))
 
 neotoma_dois <- neotoma_dois %>%
-  filter(!(dataset %in% existing_dois$datasetid & doi %in% existing_dois$doi))
+  filter(!(dataset %in% existing_dois$datasetid &
+           doi %in% existing_dois$doi))
 
+# Are there any datasets with DOIs in DataCite returned that aren't in
+# the existing list of Neotoma DOIs?
 if (nrow(neotoma_dois) > 0) {
   upload <- data.frame(datasetid = neotoma_dois$dataset,
                        doi = neotoma_dois$doi,
@@ -66,3 +71,5 @@ if (nrow(neotoma_dois) > 0) {
 } else {
   cat("No datasets to add.\n")
 }
+
+RPostgreSQL::dbDisconnect(con)
