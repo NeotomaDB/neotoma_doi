@@ -1,8 +1,8 @@
 #!/usr/bin/Rscript
 
-library(RPostgreSQL, quietly = TRUE)
-library(stringr)
-library(jsonlite)
+suppressMessages(library(RPostgreSQL, quietly = TRUE))
+suppressMessages(library(stringr))
+suppressMessages(library(jsonlite))
 suppressMessages(library(dplyr))
 
 con_string <- fromJSON("connect_remote.json")
@@ -13,6 +13,8 @@ con <- dbConnect(PostgreSQL(),
                  user = con_string$user,
                  password = con_string$password,
                  dbname = con_string$database)
+
+# Does the "Frozen" table exist in the current Database:
 
 if (RPostgreSQL::dbExistsTable(con, "doi.frozen")) {
    create <- "CREATE TABLE IF NOT EXISTS
@@ -31,6 +33,7 @@ if (RPostgreSQL::dbExistsTable(con, "doi.frozen")) {
 
 # All datasets that have been created and submitted more than
 # one week ago, without any frozen entry.
+
 datalength <- "
   SELECT DISTINCT ds.datasetid
 	FROM ndb.datasets as ds
@@ -76,3 +79,5 @@ if (howmany_after > 0) {
 
 # Now with "frozen" records and the list of datasets without
 # DOIs we can then generate the neccessary DOIs.
+
+RPostgreSQL::dbDisconnect(con)
