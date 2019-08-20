@@ -19,9 +19,11 @@ missingdoi <- "SELECT fr.datasetid
                LEFT JOIN ndb.datasetdoi AS dsdoi ON dsdoi.datasetid = fr.datasetid
                WHERE doi IS NULL"
 
-dsids <-  dbGetQuery(con, missingdoi)
+dsid_test <-  dbGetQuery(con, missingdoi) %>%
+  unlist() %>%
+  as.data.frame()
 
-for(i in unlist(dsids)) {
+for(i in dsid_test[,1]) {
   output <- try(assign_doi(i, con, post = TRUE, dbpost = TRUE, sandbox = FALSE))
   if ("try-error" %in% class(output)) {
     doids <- paste0(Sys.time(), ", ",
@@ -34,13 +36,11 @@ for(i in unlist(dsids)) {
     readr::write_lines(doids,
       path="minting.log",
       append = TRUE)
+  } else {
+    cat(paste0(which(dsid_test[,1] == i)," of ", nrow(dsid_test), ": ",
+               i, "; doi: ", output[[2]][1], "\n"))
   }
 
-  if((which(i == dsids) %% 79) == 0) {
-    cat("\n.")
-  } else {
-    cat (".")
-  }
 }
 
 RPostgreSQL::dbDisconnect(con)
