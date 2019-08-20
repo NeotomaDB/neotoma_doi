@@ -37,17 +37,12 @@ if (RPostgreSQL::dbExistsTable(con, 'ndb.datasetdoi')) {
 
 existing_dois <- dbGetQuery(con, "SELECT * FROM ndb.datasetdoi")
 
-check <- FALSE
-doi_set <- list()
-i <- 1
-rows <- 500
-
 # Check datacite for any Neotoma records.  We're paging through the DataCite
 # records, with 500 records per page.
 
 source('R/datacite_dois.R')
 
-neotoma_dois <- datacite_dois()
+neotoma_dois <- datacite_dois(rows = 500)
 
 cat(sprintf("Found a total of %d records\n", nrow(neotoma_dois)))
 
