@@ -1,6 +1,12 @@
 # Neotoma Data DOI Generation
 
-This repository is intended to act as the central management point for a variety of related repositories.  These repositories include:
+## Overview
+
+This repository acts as the central management point for a set of repositories that are used to generate digital object identifiers (DOIs) for  datasets in the Neotoma Paleoecology Database.
+
+DOIs are generated at the level of a dataset, which in Neotoma consists of all measurements of a given data type for a single collection unit at a site (e.g. all vertebrate fossils from a bone pile in a cave; all fossil pollen samples from a core in a lake; etc.)  All DOIs are associated with a landing page.
+
+Linked repositories include:
 
 *   [Neotoma Postgres Functions](https://github.com/neotomadb/Neotoma_SQL)
 *   [Neotoma Landing Pages](https://github.com/NeotomaDB/ndbLandingPage)
@@ -12,26 +18,26 @@ This repository is intended to act as the central management point for a variety
 
 *   [Simon Goring](http://goring.org)
 
-This is currently a project under development.  All participants are expected to follow the [code of conduct](https://github.com/NeotomaDB/neotoma_doi/blob/master/code_of_conduct.md) for this project.
+This project is currently under development.  All participants are expected to follow the [code of conduct](https://github.com/NeotomaDB/neotoma_doi/blob/master/code_of_conduct.md) for this project.
 
 **NOTE**: The DataCite XML validation files in the `data/` folder (and `include` subfolder) were obtained from the [DataCite GitHub Schema repository](https://github.com/datacite/schema/tree/master/source/meta/kernel-4).
 
 ## Background
 
-### DOIs and Frozen records in neotoma
+### DOIs, Dataset Versioning, and Frozen Records in Neotoma
 
-Neotoma has three data access elements related to the atomic "dataset":
-  * The live record (accessed from the various APIs)
+For any single dataset, its DOI provides access to three related elements:
+  * The live record (accessed from NeotomaDB via the various APIs)
   * The frozen record (saved one week from dataset submission)
   * The DOI metadata (posted to DataCite)
 
-The live record lives as the relationship between elements in the database, [linked to the `datasets` table](http://open.neotomadb.org/dbschema/tables/datasets.html#Relationships).  This means that the *live* record can change over time, as taxonomies or linked chronologies change.
+The live record lives as the relationship between elements in the database, [linked to the `datasets` table](http://open.neotomadb.org/dbschema/tables/datasets.html#Relationships).  Thus, the *live* record can change over time, as taxonomies or linked chronologies change.  This
 
-The *frozen* record is generated within a week of dataset submission.  It represents the state of the record at the time of upload.  This is to align with data-management best practices.  The frozen record lives in the `doi` schema of the database and is stored as a (Postgres) `jsonb` data type, along with the `datasetid`, the date created and date modified (if neccessary
+The *frozen* record is generated within a week of dataset submission.  It represents the state of the record at the time of upload.  This version supports journal requirements for data submissions and align with data-management best practices.  The frozen record lives in the `doi` schema of the database and is stored as a (Postgres) `jsonb` data type, along with the `datasetid`, the date created and date modified (if neccessary
 
 The DOI metadata is stored with DataCite and is generated from [a script in this repository](https://github.com/NeotomaDB/neotoma_doi/blob/master/R/assign_doi.R).  When a new DOI is minted the DOI and related datasetid is added to [the `datasetdoi` table](http://open.neotomadb.org/dbschema/tables/datasetdoi.html).
 
-## Work Flow For DOI Assignment
+## Workflow For DOI Assignment
 
 1.  A Neotoma data steward uploads a dataset to Neotoma (Tilia -> Tilia API -> NeotomaDB)
 
@@ -47,6 +53,9 @@ The DOI metadata is stored with DataCite and is generated from [a script in this
   *   For each entry run the function `assign_doi()` to build the DataCite XML file, and post the DOI metadata
   *   Send an email to each dataset PI indicating the DOIs have been successfully minted.
 
+## NeotomaDB Backend Transition
+The Neotoma backend relational database is in the process of being migrated from SQL Server to PostgreSQL.  During this transitional stage, new data are being entered into the SQL Server version via Tilia, while the DOIs are being generated for the datasets in the PostgreSQL version.  Data tables in the SQL Server version are periodically migrated to PostreSQL during this transitional stage and DOIs are minted then. This transitional stage will end when Tilia is tested and repointed to the PostgreSQL version.
+
 ## Funding
 
-This work is funded in part by grants from the National Science Foundation 1541002, 1550855 and 1550707.
+This work has been supported in part by grants from the National Science Foundation 1541002, 1550855 and 1550707.
