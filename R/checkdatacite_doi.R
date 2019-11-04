@@ -36,6 +36,7 @@ if (RPostgreSQL::dbExistsTable(con, 'ndb.datasetdoi')) {
 }
 
 existing_dois <- dbGetQuery(con, "SELECT * FROM ndb.datasetdoi")
+existing_dtst <- dbGetQuery(con, "SELECT * FROM ndb.datasets")
 
 # Check datacite for any Neotoma records.  We're paging through the DataCite
 # records, with 500 records per page.
@@ -57,6 +58,9 @@ if (nrow(neotoma_dois) > 0) {
                        doi = neotoma_dois$doi,
                        recdatecreated = neotoma_dois$uploaded,
                        recdatemodified = Sys.time())
+
+  upload <- upload %>%
+    filter(datasetid %in% existing_dtst$datasetid)
 
   dbWriteTable(con,
     c("ndb", "datasetdoi"),
