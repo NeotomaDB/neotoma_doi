@@ -17,6 +17,7 @@ dpi AS (
  FROM ndb.datasetpis WHERE datasetpis.datasetid = $1
 ),
 curator AS (
+  /* In the DB stuff this should be a 'DataSteward' */
   SELECT DISTINCT  contactid, 'DataCurator'::text AS contributortype
   FROM ndb.datasetsubmissions
   WHERE datasetsubmissions.datasetid = $1
@@ -30,6 +31,7 @@ coauth AS (
 ),
 analyst AS (
 	SELECT DISTINCT sana.contactid,
+  /* In the DB stuff this should be a 'DataAnalyst' */
 	        'DataCollector'::text AS contributortype
   FROM        ndb.samples AS samp
   JOIN ndb.sampleanalysts AS sana ON samp.sampleid = sana.sampleid
