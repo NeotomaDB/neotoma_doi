@@ -1,4 +1,9 @@
-datacite_dois <- function(rows = 500) {
+#' @title Get Neotoma DOIs from DataCite
+#' @description Uses the DataCite API to call for Neotoma Datasets
+#' @returns data.frame
+datacite_dois <- function() {
+
+  naNull <- function(x) { ifelse(is.null(x), NA, x) }
 
   check <- FALSE
   doi_set <- list()
@@ -9,25 +14,61 @@ datacite_dois <- function(rows = 500) {
   # Drops out of the while loop when less than the total number of rows
   # are returned.
 
-  while (check == FALSE) {
-    doi_set[[i]] <- try(rdatacite::dc_search(q = "publisher:[Neotoma]",
-                              fl = c("doi", "title",
-                                     "relatedIdentifier", "uploaded"),
-                              rows = rows,
-                              start = (i - 1) * rows))
+  finished <- TRUE
+  first <- TRUE
 
-    if ("try-error" %in% class(doi_set[[i]])) {
-      stop("Could not connect to DataCite.")
-    }
+  while(finished) {
 
-    if (nrow(doi_set[[i]]) == rows) {
-      i <- i + 1
+    if(first) {
+      result <- httr::GET('https://api.datacite.org/dois',
+                          query=list(query='publisher:Neotoma*',
+                                     'page[cursor]' = 1))
+
+      newLink <- content(result)$links$`next`
+      oldLink <- ''
+      first <- FALSE
+
     } else {
-      check <- TRUE
+
+        if(!newLink == oldLink) {
+
+          oldLink <- newLink
+          result <- httr::GET(newLink)
+
+        } else {
+          finished <- FALSE
+        }
     }
+
+    inserter <- content(result)
+    newLink <- inserter$links$`next`
+
+    if (is.null(newLink)) {
+      finished <- TRUE
+    }
+
+    i <- i + 1
+    doi_set[[(length(doi_set) + 1)]] <- inserter$data
+
+    cat(i, 'of', inserter$meta$totalPages, '\n')
+
   }
 
-  neotoma_dois <- do.call(rbind.data.frame, doi_set) %>%
+  neotoma_dois <- doi_set %>%
+    unlist(recursive = FALSE) %>%
+    map(function(x) {
+
+      id <- naNull(x$id)
+      title <- naNull(x$attributes$titles[[1]]$title)
+      created <- naNull(x$attributes$created)
+      related <- naNull(x$attributes$relatedIdentifiers[[1]]$relatedIdentifier)
+
+      data.frame(doi = id,
+                 title = title,
+                 relatedIdentifier = related,
+                 uploaded = created)
+    }) %>%
+    bind_rows() %>%
     unique() %>%
     mutate(dataset = stringr::str_match(relatedIdentifier, "(downloads/)(\\d*)")[,3])
 
