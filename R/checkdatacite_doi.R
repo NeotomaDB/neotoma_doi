@@ -5,6 +5,7 @@ suppressMessages(library(RPostgreSQL, quietly = TRUE))
 suppressMessages(library(stringr, quietly = TRUE))
 suppressMessages(library(jsonlite, quietly = TRUE))
 suppressMessages(library(dplyr, quietly = TRUE))
+suppressMessages(library(purrr, quietly = TRUE))
 
 con_string <- fromJSON("./connect_remote.json")
 
@@ -43,7 +44,7 @@ existing_dtst <- dbGetQuery(con, "SELECT * FROM ndb.datasets")
 
 source('R/datacite_dois.R')
 
-neotoma_dois <- datacite_dois(rows = 500)
+neotoma_dois <- datacite_dois()
 
 cat(sprintf("Found a total of %d records\n", nrow(neotoma_dois)))
 
@@ -63,9 +64,10 @@ if (nrow(neotoma_dois) > 0) {
     filter(datasetid %in% existing_dtst$datasetid)
 
   dbWriteTable(con,
-    c("ndb", "datasetdoi"),
-    upload,
+    name = c("ndb", "datasetdoi"),
+    value = upload,
     row.names = FALSE, append = TRUE)
+
   cat("Added ", nrow(upload), " DOIs to Neotoma.\n")
 } else {
   cat("No datasets to add.\n")

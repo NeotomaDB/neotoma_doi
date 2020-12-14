@@ -14,10 +14,10 @@ datacite_dois <- function() {
   # Drops out of the while loop when less than the total number of rows
   # are returned.
 
-  finished <- TRUE
+  finished <- FALSE
   first <- TRUE
 
-  while(finished) {
+  while(!finished) {
 
     if(first) {
       result <- httr::GET('https://api.datacite.org/dois',
@@ -30,27 +30,27 @@ datacite_dois <- function() {
 
     } else {
 
-        if(!newLink == oldLink) {
+      if(!newLink == oldLink) {
 
-          oldLink <- newLink
-          result <- httr::GET(newLink)
+        oldLink <- newLink
+        result <- httr::GET(newLink)
 
-        } else {
-          finished <- FALSE
-        }
+      } else {
+        finished <- FALSE
+      }
     }
 
     inserter <- content(result)
     newLink <- inserter$links$`next`
 
-    if (is.null(newLink)) {
-      finished <- TRUE
-    }
-
     i <- i + 1
     doi_set[[(length(doi_set) + 1)]] <- inserter$data
 
     cat(i, 'of', inserter$meta$totalPages, '\n')
+
+    if (is.null(newLink)) {
+      finished <- TRUE
+    }
 
   }
 
