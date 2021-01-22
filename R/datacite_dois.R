@@ -1,8 +1,8 @@
 #' @title Get Neotoma DOIs from DataCite
 #' @description Uses the DataCite API to call for Neotoma Datasets
 #' @returns data.frame
-datacite_dois <- function() {
 
+datacite_dois <- function() {
   naNull <- function(x) { ifelse(is.null(x), NA, x) }
 
   check <- FALSE
@@ -24,7 +24,7 @@ datacite_dois <- function() {
                           query=list(query='publisher:Neotoma*',
                                      'page[cursor]' = 1))
 
-      newLink <- content(result)$links$`next`
+      newLink <- httr::content(result)$links$`next`
       oldLink <- ''
       first <- FALSE
 
@@ -40,13 +40,14 @@ datacite_dois <- function() {
       }
     }
 
-    inserter <- content(result)
+    inserter <- httr::content(result)
     newLink <- inserter$links$`next`
-
+    
+    pb <- txtProgressBar(min = 0, max = inserter$meta$totalPages, style = 3)
+    setTxtProgressBar(pb, i)
+    
     i <- i + 1
     doi_set[[(length(doi_set) + 1)]] <- inserter$data
-
-    cat(i, 'of', inserter$meta$totalPages, '\n')
 
     if (is.null(newLink)) {
       finished <- TRUE
