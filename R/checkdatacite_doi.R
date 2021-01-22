@@ -38,21 +38,7 @@ if (!RPostgreSQL::dbExistsTable(con, c('ndb','datasetdoi'))) {
   }
 }
 
-fetchall <- function(con, query) {
-  
-  result <- dbSendQuery(con, query)
-  
-  output <- list()
-  
-  while (!dbHasCompleted(result)) {
-    rows <- length(output) + 1
-    output[[rows]] <- fetch(result, n = 100)  
-  }
-  
-  output <- output %>% bind_rows()
-  
-  return(output)
-}
+source('R/fetchall.R')
 
 existing_dois <- fetchall(con, "SELECT * FROM ndb.datasetdoi")
 existing_dtst <- fetchall(con, "SELECT * FROM ndb.datasets")

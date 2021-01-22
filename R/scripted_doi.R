@@ -13,18 +13,23 @@ con <- dbConnect(PostgreSQL(),
                  dbname = con_string$database)
 
 source("R/assign_doi.R")
+source('R/fetchall.R')
 
-missingdoi <- "SELECT fr.datasetid
+missingdoi <- "SELECT fr.datasetid AS datasetid
                FROM          doi.frozen AS fr
                LEFT JOIN ndb.datasetdoi AS dsdoi ON dsdoi.datasetid = fr.datasetid
-               WHERE doi IS NULL"
+               LEFT JOIN ndb.datasets AS ds ON ds.datasetid = fr.datasetid
+               LEFT JOIN ndb.datasettypes AS dst ON dst.datasettypeid = ds.datasettypeid
+               WHERE doi IS NULL
+                 AND NOT dst.datasettype = 'geochronologic'"
 
-dsid_test <-  dbGetQuery(con, missingdoi) %>%
-  unlist() %>%
-  as.data.frame()
+dsid_test <-  fetchall(con, missingdoi) %>% unlist()
 
-for(i in dsid_test[,1]) {
-  output <- try(assign_doi(i, con, post = TRUE, dbpost = TRUE, sandbox = FALSE))
+for(i in dsid_test) {
+  output <- try(assign_doi(ds_id = i, con = con, 
+                           post = TRUE, dbpost = TRUE, 
+                           sandbox = FALSE))
+
   if ("try-error" %in% class(output)) {
     doids <- paste0(Sys.time(), ", ",
                          i, ", ",
@@ -34,10 +39,11 @@ for(i in dsid_test[,1]) {
                        as.character(attr(output, "condition")))
 
     readr::write_lines(doids,
-      path="minting.log",
+      file = "minting.log",
       append = TRUE)
+
   } else {
-    cat(paste0(which(dsid_test[,1] == i)," of ", nrow(dsid_test), ": ",
+    cat(paste0(which(dsid_test == i)," of ", length(dsid_test), ": ",
                i, "; doi: ", output[[2]][1], "\n"))
   }
 

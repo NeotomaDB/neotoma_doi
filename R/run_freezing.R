@@ -16,7 +16,7 @@ con <- dbConnect(PostgreSQL(),
 
 # Does the "Frozen" table exist in the current Database:
 
-if (RPostgreSQL::dbExistsTable(con, "doi.frozen")) {
+if (!RPostgreSQL::dbExistsTable(con, c("doi","frozen"))) {
    create <- "CREATE TABLE IF NOT EXISTS
                        doi.frozen(datasetid integer CONSTRAINT goodds CHECK (doi.inds(datasetid)),
                        download jsonb NOT null,
@@ -27,6 +27,8 @@ if (RPostgreSQL::dbExistsTable(con, "doi.frozen")) {
    result <- try(dbExecute(con, create))
    if (! ("try-error" %in% class(result))) {
      print("Created frozen table.")
+   } else {
+     stop("Could not create the table for freezing records.")
    }
 
 }
@@ -39,14 +41,15 @@ datalength <- "
 	FROM ndb.datasets as ds
 	LEFT OUTER JOIN ndb.datasetdoi AS dsdoi ON  ds.datasetid = dsdoi.datasetid
 	JOIN    ndb.datasetsubmissions AS dss   ON dss.datasetid = ds.datasetid
-
   WHERE (ds.datasetid) NOT IN (SELECT datasetid FROM doi.frozen) AND
       	ds.recdatecreated < NOW() - INTERVAL '1 week' AND
 		    dss.submissiondate < NOW() - INTERVAL '1 week' AND
         ds.datasettypeid > 1
 "
 
-howmany <- dbGetQuery(con, datalength) %>%
+source('R/fetchall.R')
+
+howmany <- fetchall(con, datalength) %>%
   unlist() %>%
   length() %>%
   as.numeric()
@@ -54,27 +57,28 @@ howmany <- dbGetQuery(con, datalength) %>%
 cat(sprintf("There are %d datasets that need to be frozen.\n", howmany))
 
 # Might be slow.  Generates the "frozen" records for the datasets.
+if (howmany > 0) {
+  run_freeze <- dbExecute(con, readr::read_file("sql/generatingFrozen.sql"))
+  howmany_after <- dbGetQuery(con, datalength) %>%
+    unlist() %>%
+    length() %>%
+    as.numeric()
 
-run_freeze <- dbExecute(con, readr::read_file("sql/generatingFrozen.sql"))
+  cat(sprintf("There are %d datasets that could not be frozen:\n",
+              howmany_after))
 
-howmany_after <- dbGetQuery(con, datalength) %>%
-  unlist() %>%
-  length() %>%
-  as.numeric()
+  if (howmany_after > 0) {
+    cat("Adding unfrozen dataset IDs to the log file at `freeze.log`.\n")
+    unfrozen <- dbGetQuery(con, datalength) %>%
+      unlist()  %>%
+      paste0(collapse = ",") %>%
+      paste0(Sys.time(), ", [", ., "]")
 
-cat(sprintf("There are %d datasets that could not be frozen:\n",
-            howmany_after))
+    readr::write_lines(unfrozen,
+      path="freeze.log",
+      append = TRUE)
+  }
 
-if (howmany_after > 0) {
-  cat("Adding unfrozen dataset IDs to the log file at `freeze.log`.\n")
-  unfrozen <- dbGetQuery(con, datalength) %>%
-    unlist()  %>%
-    paste0(collapse = ",") %>%
-    paste0(Sys.time(), ", [", ., "]")
-
-  readr::write_lines(unfrozen,
-    path="freeze.log",
-    append = TRUE)
 }
 
 # Now with "frozen" records and the list of datasets without
