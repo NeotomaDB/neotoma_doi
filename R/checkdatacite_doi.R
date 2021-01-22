@@ -6,6 +6,7 @@ suppressMessages(library(stringr, quietly = TRUE))
 suppressMessages(library(jsonlite, quietly = TRUE))
 suppressMessages(library(dplyr, quietly = TRUE))
 suppressMessages(library(purrr, quietly = TRUE))
+suppressMessages(library(httr, quietly = TRUE))
 
 con_string <- fromJSON("./connect_remote.json")
 
@@ -16,10 +17,9 @@ con <- dbConnect(PostgreSQL(),
                  password = con_string$password,
                  dbname = con_string$database)
 
-
 # Make the datasetdoi table in the current connected Database.
 # This isn't in the Postgres DB migration, so may need to be added de novo.
-if (RPostgreSQL::dbExistsTable(con, 'ndb.datasetdoi')) {
+if (!RPostgreSQL::dbExistsTable(con, c('ndb','datasetdoi'))) {
 
   create <- "CREATE TABLE ndb.datasetdoi (
     datasetid integer REFERENCES ndb.datasets(datasetid),
@@ -32,7 +32,9 @@ if (RPostgreSQL::dbExistsTable(con, 'ndb.datasetdoi')) {
 
   result <- try(dbExecute(con, create))
   if (! ("try-error" %in% class(result))) {
-    print("Created doi dataset table.")
+    message("Created the ndb.doidataset table.")
+  } else {
+    stop("Failed to create the ndb.doidataset table.")
   }
 }
 
@@ -42,6 +44,7 @@ existing_dtst <- dbGetQuery(con, "SELECT * FROM ndb.datasets")
 # Check datacite for any Neotoma records.  We're paging through the DataCite
 # records, with 500 records per page.
 
+cat("Checking existing datasets from DataCite")
 source('R/datacite_dois.R')
 
 neotoma_dois <- datacite_dois()
