@@ -10,6 +10,6 @@ WITH ds AS (
 				ds.datasettypeid > 1
 )
 SELECT df.datasetid,
-		df.frozendata AS download,
-		current_timestamp AS recdatecreated
-FROM doi.doifreeze((SELECT array_agg(datasetid) FROM ds)) as df;
+		   df.record AS download,
+		   current_timestamp AS recdatecreated
+FROM   doi.doifreeze((SELECT array_agg(datasetid) FROM ds)) as df;

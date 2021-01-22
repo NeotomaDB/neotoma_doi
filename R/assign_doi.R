@@ -14,16 +14,16 @@ assign_doi <- function(ds_id,
   # Frozen records were added from database records within the week of being
   # first generated.
 
-  froz_api <- paste0("http://api-dev.neotomadb.org/v2.0/data/download/",
+  froz_api <- paste0("http://api.neotomadb.org/v2.0/data/downloads/",
                     ds_id)
   frozen <- fromJSON(froz_api, simplifyVector = FALSE)$data[[1]]
 
   assertthat::are_equal(frozen$datasetid, ds_id,
     msg = "The dataset id returned by the API is not the same as the one supplied by the user.\n  This is likely an API error.")
-  assertthat::assert_that(!is.null(frozen$frozendata),
-    msg = "The download API is not returning an element named 'frozendata'.")
+  assertthat::assert_that(!is.null(frozen$record),
+    msg = "The download API is not returning an element named 'record'.")
 
-  cont_api <- paste0("http://api-dev.neotomadb.org/v2.0/data/datasets/",
+  cont_api <- paste0("http://api.neotomadb.org/v2.0/data/datasets/",
                              ds_id, "/contacts")
 
   contact <- fromJSON(cont_api,
@@ -65,13 +65,13 @@ assign_doi <- function(ds_id,
   # Using the dataset PIs.
   XML::newXMLNode("creators", parent = root)
 
-  lapply(contact,
+  lapply(contact$contacts,
          function(x) {
            if(length(x) > 0) {
              XML::addChildren(root[["creators"]],
                               XML::newXMLNode("creator",
                         .children = list(XML::newXMLNode("creatorName",
-                                                    x$fullName) #,
+                                                    x$fullname) #,
                                          #XML::newXMLNode("affiliation",
                                           #          gsub(pattern = "\r\n", ", ", x$address))
                                                   )))
@@ -79,8 +79,8 @@ assign_doi <- function(ds_id,
           })
 
   # Add Titles:
-  title <- paste0(frozen$frozendata$data$dataset$site$sitename, " ",
-                  frozen$frozendata$data$dataset$dataset$datasettype,
+  title <- paste0(frozen$record$data$dataset$site$sitename, " ",
+                  frozen$record$data$dataset$dataset$datasettype,
                   " dataset")
 
   XML::newXMLNode("titles", parent = root)
@@ -147,20 +147,20 @@ assign_doi <- function(ds_id,
   XML::newXMLNode("relatedIdentifiers", parent = root)
 
   XML::newXMLNode("relatedIdentifier",
-                  paste0("api-dev.neotomadb.org/v2.0/data/downloads/", ds_id),
+                  paste0("api.neotomadb.org/v2.0/data/downloads/", ds_id),
                   attrs = list(relationType = "IsMetadataFor",
                                relatedIdentifierType = "URL",
                                relatedMetadataScheme = "json"),
                   parent = root[["relatedIdentifiers"]])
   XML::newXMLNode("relatedIdentifier",
-                  paste0("data.neotomadb.org/datasets/", ds_id),
+                  paste0("data.neotomadb.org/", ds_id),
                   attrs = list(relationType = "IsMetadataFor",
                                relatedIdentifierType = "URL",
                                relatedMetadataScheme = "html"),
                   parent = root[["relatedIdentifiers"]])
 
   # Add DOI tags for the publications as related identifiers:
-  pub_loc <- paste0("http://api-dev.neotomadb.org/v2.0/data/datasets/",
+  pub_loc <- paste0("http://api.neotomadb.org/v2.0/data/datasets/",
                     ds_id, "/publications")
   pubs <- fromJSON(pub_loc)
   dois <- na.omit(unlist(pubs$data$doi))
@@ -177,7 +177,7 @@ assign_doi <- function(ds_id,
   }
 
   # Number 13: size
-  dl_loc <- paste0("api-dev.neotomadb.org/v2.0/data/downloads/", ds_id)
+  dl_loc <- paste0("api.neotomadb.org/v2.0/data/downloads/", ds_id)
   dl_obj <- httr::GET(dl_loc)
 
   size <- as.numeric(object.size(dl_obj))
@@ -210,7 +210,7 @@ assign_doi <- function(ds_id,
                    attrs = rights))
 
   # Locations
-  loc <- fromJSON(frozen$frozendata$data$dataset$site$geography)
+  loc <- fromJSON(frozen$record$data$dataset$site$geography)
 
   XML::newXMLNode("geoLocations", parent = root)
 
@@ -331,7 +331,7 @@ assign_doi <- function(ds_id,
                      out_doi)
 
   readr::write_lines(doids,
-    path="minting.log",
+    file = "minting.log",
     append = TRUE)
 
   list(doc, out_doi)
