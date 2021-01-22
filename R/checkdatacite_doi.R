@@ -38,8 +38,24 @@ if (!RPostgreSQL::dbExistsTable(con, c('ndb','datasetdoi'))) {
   }
 }
 
-existing_dois <- dbGetQuery(con, "SELECT * FROM ndb.datasetdoi")
-existing_dtst <- dbGetQuery(con, "SELECT * FROM ndb.datasets")
+fetchall <- function(con, query) {
+  
+  result <- dbSendQuery(con, query)
+  
+  output <- list()
+  
+  while (!dbHasCompleted(result)) {
+    rows <- length(output) + 1
+    output[[rows]] <- fetch(result, n = 100)  
+  }
+  
+  output <- output %>% bind_rows()
+  
+  return(output)
+}
+
+existing_dois <- fetchall(con, "SELECT * FROM ndb.datasetdoi")
+existing_dtst <- fetchall(con, "SELECT * FROM ndb.datasets")
 
 # Check datacite for any Neotoma records.  We're paging through the DataCite
 # records, with 500 records per page.
@@ -51,27 +67,42 @@ neotoma_dois <- datacite_dois()
 
 cat(sprintf("Found a total of %d records\n", nrow(neotoma_dois)))
 
-neotoma_dois <- neotoma_dois %>%
+# The record is not in the existing Neotoma ndb.datasetdoi table:
+missing_dois <- neotoma_dois %>%
   filter(!(dataset %in% existing_dois$datasetid &
            doi %in% existing_dois$doi))
 
 # Are there any datasets with DOIs in DataCite returned that aren't in
 # the existing list of Neotoma DOIs?
-if (nrow(neotoma_dois) > 0) {
-  upload <- data.frame(datasetid = neotoma_dois$dataset,
-                       doi = neotoma_dois$doi,
-                       recdatecreated = neotoma_dois$uploaded,
-                       recdatemodified = Sys.time())
 
-  upload <- upload %>%
+if (nrow(missing_dois) > 0) {
+  unarchived <- data.frame(datasetid = neotoma_dois$dataset,
+                       doi = neotoma_dois$doi)
+
+  missingds <- unarchived %>%
+    filter(!datasetid %in% existing_dtst$datasetid)
+
+  if(nrow(missingds) > 0) {
+    warning("There are a number of records for DOIs without associated dataset IDs.  These have been written to file.")
+    readr::write_csv(missingds, file = paste0("missingdatasets", Sys.Date(), ".csv"))
+  }
+  
+  upload <- unarchived %>%
+    filter(!datasetid %in% existing_dois$datasetid) %>% 
     filter(datasetid %in% existing_dtst$datasetid)
-
-  dbWriteTable(con,
-    name = c("ndb", "datasetdoi"),
-    value = upload,
-    row.names = FALSE, append = TRUE)
-
-  cat("Added ", nrow(upload), " DOIs to Neotoma.\n")
+  
+  if(nrow(upload) > 0) {
+    cat(sprintf("There are %d records that have not been archived in Neotoma.\n", nrow(upload)))
+    
+    dbWriteTable(con,
+      name = c("ndb", "datasetdoi"),
+      value = upload,
+      row.names = FALSE, append = TRUE)
+  
+    cat("Added ", nrow(upload), " DOIs to Neotoma.\n")
+  } else {
+    cat("No datasets to add.\n")
+  }
 } else {
   cat("No datasets to add.\n")
 }
