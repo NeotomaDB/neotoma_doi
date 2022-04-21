@@ -1,7 +1,6 @@
 [![lifecycle](https://img.shields.io/badge/lifecycle-stable-green.svg)]()
 [![NSF-1550707](https://img.shields.io/badge/NSF-1550707-blue.svg)](https://nsf.gov/awardsearch/showAward?AWD_ID=1550707) [![NSF-1550855](https://img.shields.io/badge/NSF-1550855-blue.svg)](https://nsf.gov/awardsearch/showAward?AWD_ID=1550855) [![NSF-1541002](https://img.shields.io/badge/NSF-1541002-blue.svg)](https://nsf.gov/awardsearch/showAward?AWD_ID=1541002)
 
-
 # Neotoma Data DOI Generation
 
 ## Overview
@@ -12,17 +11,17 @@ DOIs are generated at the level of a dataset, which in Neotoma consists of all m
 
 Linked repositories include:
 
-*   [Neotoma Postgres Functions](https://github.com/neotomadb/Neotoma_SQL)
-*   [Neotoma Landing Pages](https://github.com/NeotomaDB/ndbLandingPage)
-*   [Neotoma API](https://github.com/NeotomaDB/api_nodetest)
-*   [Neotoma DOI Technical Paper](https://github.com/NeotomaDB/AssignDOIs)
-*   [Tilia API Endpoints](https://github.com/NeotomaDB/tilia_api)
+* [Neotoma Postgres Functions](https://github.com/neotomadb/Neotoma_SQL)
+* [Neotoma Landing Pages](https://github.com/NeotomaDB/ndbLandingPage)
+* [Neotoma API](https://github.com/NeotomaDB/api_nodetest)
+* [Neotoma DOI Technical Paper](https://github.com/NeotomaDB/AssignDOIs)
+* [Tilia API Endpoints](https://github.com/NeotomaDB/tilia_api)
 
 ## Contributors
 
-*   [Simon Goring](http://goring.org) [![orcid](https://img.shields.io/badge/orcid-0000--0002--2700--4605-brightgreen.svg)](https://orcid.org/0000-0002-2700-4605)
+* [Simon Goring](http://goring.org) [![orcid](https://img.shields.io/badge/orcid-0000--0002--2700--4605-brightgreen.svg)](https://orcid.org/0000-0002-2700-4605)
 
-This project is currently under development.  All participants are expected to follow the [code of conduct](https://github.com/NeotomaDB/neotoma_doi/blob/master/code_of_conduct.md) for this project.
+This project is currently under development. All participants are expected to follow the [code of conduct](https://github.com/NeotomaDB/neotoma_doi/blob/master/code_of_conduct.md) for this project.
 
 **NOTE**: The DataCite XML validation files in the `data/` folder (and `include` subfolder) were obtained from the [DataCite GitHub Schema repository](https://github.com/datacite/schema/tree/master/source/meta/kernel-4).
 
@@ -32,31 +31,42 @@ This project is currently under development.  All participants are expected to f
 
 For any single dataset, the DOI provides access to three related elements:
 
-  * The live record (accessed from Neotoma via the various [APIs](http://api.neotomadb.org))
-  * The frozen record (saved one week from dataset submission)
-  * The DOI metadata (posted to [DataCite](http://datacite.org))
+* The live record (accessed from Neotoma via the various [APIs](http://api.neotomadb.org))
+* The frozen record (saved one week from dataset submission and stored in the table `doi.frozen` in the Neotoma database)
+* The DOI metadata (posted to [DataCite](http://datacite.org))
 
 The live record lives as the relationship between elements in the database, [linked to the `datasets` table](http://open.neotomadb.org/dbschema/tables/datasets.html#Relationships). Thus, the *live* record can change over time, as taxonomies or linked chronologies change.
 
-The *frozen* record is generated within a week of dataset submission.  It represents the state of the record at the time of upload.  This version supports journal requirements for data submissions and aligns with data-management best practices.  The frozen record lives in the `doi` schema of the database and is stored as a (Postgres) `jsonb` data type, along with the `datasetid`, the date created and date modified (if neccessary
+The *frozen* record is generated within a week of dataset submission ([SQL here](https://github.com/NeotomaDB/function/doi)).  It represents the state of the record at the time of upload. The frozen version supports journal requirements for data submissions and aligns with data-management best practices. The frozen record lives in the `doi` schema of the database and is stored as a (Postgres) `jsonb` data type, along with the `datasetid`.
 
 The DOI metadata is stored with DataCite and is generated from [a script in this repository](https://github.com/NeotomaDB/neotoma_doi/blob/master/R/assign_doi.R).  When a new DOI is minted the DOI and related datasetid is added to [the `datasetdoi` table](http://open.neotomadb.org/dbschema/tables/datasetdoi.html).
 
+### Database Structure
+
+The DOI management within the Neotoma database is managed within the `doi` schema.  This schema contains two tables:
+
+#### `frozen`
+
+This table includes two columns: `datasetid` which is a foreign key to `ndb.datasets` and has a one-to-one relationship (a constraint on the uniqueness of the `datasetid`).  The `frozen` field includes information on the dataset and all constituent collectionunits.
+
+#### `datasetdoi`
+
+This table includes three columns, the `datasetid`, the `doi` and the JSON representation of the dataset metadata following the DataCite JSON scheme.
+
 ## Workflow For DOI Assignment
 
-1.  A Neotoma data steward uploads a dataset to Neotoma (Tilia -> Tilia API -> NeotomaDB)
+1. A Neotoma data steward uploads a dataset to Neotoma (Tilia -> Tilia API -> NeotomaDB)
+2. Chron job running in `data-dev` checks for all records generated at least one week ago, without a "frozen" version (query in the [neotoma_doi repository](https://github.com/NeotomaDB/neotoma_doi/blob/master/sql/generatingFrozen.sql))
+* The script generates a frozen version of the dataset in the table `doi.frozen` in the database.
+* The function returns a list of aggregated datasetids along with the contact information for the dataset PI.
+* [**not currently implemented**] [An email](https://github.com/NeotomaDB/neotoma_doi/blob/master/data/email_text.txt) will be sent to each dataset PI with a listed email address. The email will confirm that a DOI or a set of DOIs have been reserved, and that the PI has one week to review the relevant data. It will also indicate that certain metadata (ORCIDs, email, site notes or descriptions) would assist in improving the usefulness of the data. Provide a link to the Explorer and Landing Pages for the data record and a link to (?something?) to facilitate adding the required metadata.
 
-2.  Chron job running in `data-dev` checks for all records generated at least one week ago, without a "frozen" version (query in the [neotoma_doi repository](https://github.com/NeotomaDB/neotoma_doi/blob/master/sql/generatingFrozen.sql))
-  *   The script generates a frozen version of the dataset in the table `doi.frozen` in the database.
-  *   The function returns a list of aggregated datasetids along with the contact information for the dataset PI.
-  *   [**not currently implemented**] [An email](https://github.com/NeotomaDB/neotoma_doi/blob/master/data/email_text.txt) will be sent to each dataset PI with a listed email address. The email will confirm that a DOI or a set of DOIs have been reserved, and that the PI has one week to review the relevant data. It will also indicate that certain metadata (ORCIDs, email, site notes or descriptions) would assist in improving the usefulness of the data. Provide a link to the Explorer and Landing Pages for the data record and a link to (?something?) to facilitate adding the required metadata.
+1. The PI of record can contact the steward to update the metadata (or a token can be generated to allow the PI to update things?)
+2. The same chron job in #2 will identify records where the `ndb.dataset` entry is older than 14 days, the dataset has an entry in `doi.frozen` and no entry in `ndb.datasetdoi`.  This assumes that PIs and stewards have had an opportunity to revise their datasets.
 
-3.  The PI of record can contact the steward to update the metadata (or a token can be generated to allow the PI to update things?)
-
-4.  The same chron job in #2 will identify records where the `ndb.dataset` entry is older than 14 days, the dataset has an entry in `doi.frozen` and no entry in `ndb.datasetdoi`.  This assumes that PIs and stewards have had an opportunity to revise their datasets.
-  *   For each entry `UPDATE` the frozen dataset using `doi.doifreeze()`.
-  *   For each entry run the function `assign_doi()` to build the DataCite XML file, and post the DOI metadata
-  *   Send an email to each dataset PI indicating the DOIs have been successfully minted.
+* For each entry `UPDATE` the frozen dataset using `doi.doifreeze()`.
+* For each entry run the function `assign_doi()` to build the DataCite XML file, and post the DOI metadata
+* Send an email to each dataset PI indicating the DOIs have been successfully minted.
 
 ## Funding
 
