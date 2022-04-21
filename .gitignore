@@ -11,3 +11,13 @@ samplevalues.txt
 xml_files/
 doi-mailer-fc43dde07186.json
 empw.txt
+
+py/alldois.json
+
+*.csv
+
+alldois.json
+
+doierrors.log
+
+*.log
