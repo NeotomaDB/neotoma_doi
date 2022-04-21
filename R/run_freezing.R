@@ -16,12 +16,12 @@ con <- dbConnect(PostgreSQL(),
 
 # Does the "Frozen" table exist in the current Database:
 
-if (!RPostgreSQL::dbExistsTable(con, c("doi","frozen"))) {
+if (!RPostgreSQL::dbExistsTable(con, c("doi", "frozen"))) {
    create <- "CREATE TABLE IF NOT EXISTS
-                       doi.frozen(datasetid integer CONSTRAINT goodds CHECK (doi.inds(datasetid)),
-                       download jsonb NOT null,
-                       recdatecreated TIMESTAMP DEFAULT NOW(),
-                       recmodified TIMESTAMP DEFAULT NOW());
+                doi.frozen(datasetid integer CONSTRAINT goodds CHECK (doi.inds(datasetid)),
+                download jsonb NOT null,
+                recdatecreated TIMESTAMP DEFAULT NOW(),
+                recmodified TIMESTAMP DEFAULT NOW());
               GRANT SELECT, INSERT ON doi.frozen TO doiwriter;"
 
    result <- try(dbExecute(con, create))
@@ -42,8 +42,8 @@ datalength <- "
 	LEFT OUTER JOIN ndb.datasetdoi AS dsdoi ON  ds.datasetid = dsdoi.datasetid
 	JOIN    ndb.datasetsubmissions AS dss   ON dss.datasetid = ds.datasetid
   WHERE (ds.datasetid) NOT IN (SELECT datasetid FROM doi.frozen) AND
-      	ds.recdatecreated < NOW() - INTERVAL '1 week' AND
-		    dss.submissiondate < NOW() - INTERVAL '1 week' AND
+      	ds.recdatecreated < NOW() - INTERVAL '2 days' AND
+		    dss.submissiondate < NOW() - INTERVAL '2 days' AND
         ds.datasettypeid > 1
 "
 
@@ -75,7 +75,7 @@ if (howmany > 0) {
       paste0(Sys.time(), ", [", ., "]")
 
     readr::write_lines(unfrozen,
-      path="freeze.log",
+      file = "freeze.log",
       append = TRUE)
   }
 

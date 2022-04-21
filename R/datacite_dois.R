@@ -17,20 +17,20 @@ datacite_dois <- function() {
   finished <- FALSE
   first <- TRUE
 
-  while(!finished) {
+  while (!finished) {
 
-    if(first) {
-      result <- httr::GET('https://api.datacite.org/dois',
-                          query=list(query='publisher:Neotoma*',
-                                     'page[cursor]' = 1))
+    if (first) {
+      result <- httr::GET("https://api.datacite.org/dois",
+                          query = list(query = "publisher:Neotoma*",
+                                     "page[cursor]" = 1))
 
       newLink <- httr::content(result)$links$`next`
-      oldLink <- ''
+      oldLink <- ""
       first <- FALSE
 
     } else {
 
-      if(!newLink == oldLink) {
+      if (!newLink == oldLink) {
 
         oldLink <- newLink
         result <- httr::GET(newLink)
@@ -42,10 +42,10 @@ datacite_dois <- function() {
 
     inserter <- httr::content(result)
     newLink <- inserter$links$`next`
-    
+
     pb <- txtProgressBar(min = 0, max = inserter$meta$totalPages, style = 3)
     setTxtProgressBar(pb, i)
-    
+
     i <- i + 1
     doi_set[[(length(doi_set) + 1)]] <- inserter$data
 
@@ -71,7 +71,8 @@ datacite_dois <- function() {
     }) %>%
     bind_rows() %>%
     unique() %>%
-    mutate(dataset = stringr::str_match(relatedIdentifier, "(downloads/)(\\d*)")[,3])
+    mutate(dataset = stringr::str_match(relatedIdentifier,
+                                        "(downloads/)(\\d*)")[, 3])
 
   return(neotoma_dois)
 }

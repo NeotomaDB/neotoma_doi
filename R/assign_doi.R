@@ -16,12 +16,11 @@ assign_doi <- function(ds_id,
 
   froz_api <- paste0("http://api.neotomadb.org/v2.0/data/downloads/",
                     ds_id)
-  frozen <- fromJSON(froz_api, simplifyVector = FALSE)$data[[1]]
+  frozen <- jsonlite::fromJSON(froz_api, simplifyVector = FALSE)$data[[1]]
 
-  assertthat::are_equal(frozen$datasetid, ds_id,
-    msg = "The dataset id returned by the API is not the same as the one supplied by the user.\n  This is likely an API error.")
-  assertthat::assert_that(!is.null(frozen$record),
-    msg = "The download API is not returning an element named 'record'.")
+  assertthat::are_equal(frozen$site$collectionunit$dataset$datasetid, ds_id,
+    msg = "The dataset id returned by the API is not the same as the one 
+           supplied by the user.\n  This is likely an API error.")
 
   cont_api <- paste0("http://api.neotomadb.org/v2.0/data/datasets/",
                              ds_id, "/contacts")
@@ -79,8 +78,8 @@ assign_doi <- function(ds_id,
           })
 
   # Add Titles:
-  title <- paste0(frozen$record$data$dataset$site$sitename, " ",
-                  frozen$record$data$dataset$dataset$datasettype,
+  title <- paste0(frozen$site$sitename, " ",
+                  frozen$site$collectionunit$dataset$datasettype,
                   " dataset")
 
   XML::newXMLNode("titles", parent = root)
@@ -163,12 +162,12 @@ assign_doi <- function(ds_id,
   pub_loc <- paste0("http://api.neotomadb.org/v2.0/data/datasets/",
                     ds_id, "/publications")
   pubs <- fromJSON(pub_loc)
-  dois <- na.omit(unlist(pubs$data$doi))
+  dois <- na.omit(unlist(pubs$data$publication$doi))
 
   if (length(dois) == 0) {
     # There's no current DOI
   } else {
-    lapply(dois, function(x){
+    lapply(dois, function(x) {
       XML::newXMLNode("relatedIdentifier", paste0("doi:", x),
                       attrs = list(relationType = "IsDocumentedBy",
                                    relatedIdentifierType = "DOI"),
@@ -210,7 +209,7 @@ assign_doi <- function(ds_id,
                    attrs = rights))
 
   # Locations
-  loc <- fromJSON(frozen$record$data$dataset$site$geography)
+  loc <- fromJSON(frozen$site$geography)
 
   XML::newXMLNode("geoLocations", parent = root)
 
@@ -291,14 +290,14 @@ assign_doi <- function(ds_id,
 
         if (dbpost == TRUE & !sandbox) {
 
-          doibody <- paste0("url=http://data-dev.neotomadb.org/", ds_id, "\ndoi=", out_doi)
+          doibody <- paste0("url=http://data.neotomadb.org/", ds_id, "\ndoi=", out_doi)
 
-          publish <- httr::PUT(url=paste0("https://mds.datacite.org/doi/", out_doi),
+          publish <- httr::PUT(url = paste0("https://mds.datacite.org/doi/", out_doi),
                                config = httr::authenticate(user = dc_pw$user,
                                                        password = dc_pw$prod$pw),
                                content_type('text/plain;charset=UTF-8'),
-                               body=doibody,
-                               encoding="raw")
+                               body = doibody,
+                               encoding = "raw")
 
           if(http_status(publish)$category == "Success") {
 
@@ -336,3 +335,4 @@ assign_doi <- function(ds_id,
 
   list(doc, out_doi)
 }
+

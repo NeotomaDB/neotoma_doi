@@ -19,7 +19,7 @@ con <- dbConnect(PostgreSQL(),
 
 # Make the datasetdoi table in the current connected Database.
 # This isn't in the Postgres DB migration, so may need to be added de novo.
-if (!RPostgreSQL::dbExistsTable(con, c('ndb','datasetdoi'))) {
+if (!RPostgreSQL::dbExistsTable(con, c("ndb", "datasetdoi"))) {
 
   create <- "CREATE TABLE ndb.datasetdoi (
     datasetid integer REFERENCES ndb.datasets(datasetid),
@@ -38,7 +38,7 @@ if (!RPostgreSQL::dbExistsTable(con, c('ndb','datasetdoi'))) {
   }
 }
 
-source('R/fetchall.R')
+source("R/fetchall.R")
 
 existing_dois <- fetchall(con, "SELECT * FROM ndb.datasetdoi")
 existing_dtst <- fetchall(con, "SELECT * FROM ndb.datasets")
@@ -47,7 +47,7 @@ existing_dtst <- fetchall(con, "SELECT * FROM ndb.datasets")
 # records, with 500 records per page.
 
 cat("Checking existing datasets from DataCite")
-source('R/datacite_dois.R')
+source("R/datacite_dois.R")
 
 neotoma_dois <- datacite_dois()
 
@@ -68,23 +68,26 @@ if (nrow(missing_dois) > 0) {
   missingds <- unarchived %>%
     filter(!datasetid %in% existing_dtst$datasetid)
 
-  if(nrow(missingds) > 0) {
-    warning("There are a number of records for DOIs without associated dataset IDs.  These have been written to file.")
-    readr::write_csv(missingds, file = paste0("missingdatasets", Sys.Date(), ".csv"))
+  if (nrow(missingds) > 0) {
+    warning("There are a number of records for DOIs without associated
+             dataset IDs. These have been written to file.")
+    readr::write_csv(missingds,
+                     file = paste0("missingdatasets", Sys.Date(), ".csv"))
   }
-  
+
   upload <- unarchived %>%
-    filter(!datasetid %in% existing_dois$datasetid) %>% 
+    filter(!datasetid %in% existing_dois$datasetid) %>%
     filter(datasetid %in% existing_dtst$datasetid)
-  
-  if(nrow(upload) > 0) {
-    cat(sprintf("There are %d records that have not been archived in Neotoma.\n", nrow(upload)))
-    
+
+  if (nrow(upload) > 0) {
+    cat(sprintf("%d records have not been archived in Neotoma.\n",
+                nrow(upload)))
+
     dbWriteTable(con,
       name = c("ndb", "datasetdoi"),
       value = upload,
       row.names = FALSE, append = TRUE)
-  
+
     cat("Added ", nrow(upload), " DOIs to Neotoma.\n")
   } else {
     cat("No datasets to add.\n")
