@@ -22,6 +22,10 @@ parser = argparse.ArgumentParser(
     description='Check Neotoma DOI records within DataCite against ' +
                 'records stored within Neotoma.')
 
+parser.add_argument('-fetch', dest='getDS', default=False,
+                    help='Fetch all DataCite records and update Neotoma database.',
+                    nargs = '+')
+
 parser.add_argument('-o', dest='isDS', default=False,
                     help='Mint a new DOI for one or more dataset IDs (listed)',
                     nargs = '+')
