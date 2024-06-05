@@ -5,8 +5,8 @@ WITH ds AS (
 	LEFT OUTER JOIN ndb.datasetdoi as dsdoi ON ds.datasetid = dsdoi.datasetid
 	JOIN ndb.datasetsubmissions AS dss ON dss.datasetid = ds.datasetid
 	WHERE (ds.datasetid) NOT IN (SELECT datasetid FROM doi.frozen) AND
-      	ds.recdatecreated < NOW() - INTERVAL '1 week' AND
-		    dss.submissiondate < NOW() - INTERVAL '1 week' AND
+      	ds.recdatecreated < NOW() - INTERVAL '2 days' AND
+		    dss.submissiondate < NOW() - INTERVAL '2 days' AND
 				ds.datasettypeid > 1
 )
 SELECT df.datasetid,

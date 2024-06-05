@@ -25,9 +25,9 @@ missingdoi <- "SELECT fr.datasetid AS datasetid
 
 dsid_test <-  fetchall(con, missingdoi) %>% unlist()
 
-for(i in dsid_test) {
-  output <- try(assign_doi(ds_id = i, con = con, 
-                           post = TRUE, dbpost = TRUE, 
+for (i in dsid_test) {
+  output <- try(assign_doi(ds_id = i, con = con,
+                           post = TRUE, dbpost = TRUE,
                            sandbox = FALSE))
 
   if ("try-error" %in% class(output)) {
@@ -43,7 +43,7 @@ for(i in dsid_test) {
       append = TRUE)
 
   } else {
-    cat(paste0(which(dsid_test == i)," of ", length(dsid_test), ": ",
+    cat(paste0(which(dsid_test == i), " of ", length(dsid_test), ": ",
                i, "; doi: ", output[[2]][1], "\n"))
   }
 
