@@ -1,0 +1,190 @@
+{
+    "doi": "10.21233/n31d9w",
+    "prefix": "10.21233",
+    "suffix": "n31d9w",
+    "identifiers": [],
+    "alternateIdentifiers": [],
+    "creators": [
+        {
+            "name": "Cwynar, Les C.",
+            "nameType": "Personal",
+            "givenName": "Les C.",
+            "familyName": "Cwynar",
+            "affiliation": [
+                "Department of Biology, University of New Brunswick, Bag Service Number 45111, Fredericton, New Brunswick E3B 6E1, Canada"
+            ],
+            "nameIdentifiers": []
+        }
+    ],
+    "titles": [
+        {
+            "lang": "en-us",
+            "title": "Hail Lake pollen dataset"
+        }
+    ],
+    "publisher": "Neotoma Paleoecological Database",
+    "container": {},
+    "publicationYear": 2017,
+    "subjects": [
+        {
+            "subject": "Paleoecology",
+            "subjectScheme": "Library of Congress"
+        }
+    ],
+    "contributors": [
+        {
+            "name": "Duvall, Mathieu L.",
+            "nameType": "Personal",
+            "givenName": "Mathieu L.",
+            "familyName": "Duvall",
+            "affiliation": [],
+            "contributorType": "Researcher",
+            "nameIdentifiers": []
+        },
+        {
+            "name": "Cwynar, Les C.",
+            "nameType": "Personal",
+            "givenName": "Les C.",
+            "familyName": "Cwynar",
+            "affiliation": [],
+            "contributorType": "DataCollector",
+            "nameIdentifiers": []
+        },
+        {
+            "name": "Cwynar, Les C.",
+            "nameType": "Personal",
+            "givenName": "Les C.",
+            "familyName": "Cwynar",
+            "affiliation": [],
+            "contributorType": "ProjectLeader",
+            "nameIdentifiers": []
+        },
+        {
+            "name": "Grimm, Eric Christopher",
+            "nameType": "Personal",
+            "givenName": "Eric Christopher",
+            "familyName": "Grimm",
+            "affiliation": [],
+            "contributorType": "DataCurator",
+            "nameIdentifiers": []
+        },
+        {
+            "name": "Cwynar, Les C.",
+            "nameType": "Personal",
+            "givenName": "Les C.",
+            "familyName": "Cwynar",
+            "affiliation": [],
+            "contributorType": "Researcher",
+            "nameIdentifiers": []
+        },
+        {
+            "name": "Spear, Ray W.",
+            "nameType": "Personal",
+            "givenName": "Ray W.",
+            "familyName": "Spear",
+            "affiliation": [],
+            "contributorType": "Researcher",
+            "nameIdentifiers": []
+        }
+    ],
+    "dates": [
+        {
+            "date": "1998-07-05",
+            "dateType": "Submitted"
+        },
+        {
+            "date": "1998-07-05",
+            "dateType": "Submitted"
+        },
+        {
+            "date": "1998-07-05",
+            "dateType": "Created"
+        },
+        {
+            "date": "1998-07-05",
+            "dateType": "Updated"
+        },
+        {
+            "date": "2017",
+            "dateType": "Issued"
+        }
+    ],
+    "language": "en",
+    "types": {
+        "ris": "DATA",
+        "bibtex": "misc",
+        "citeproc": "dataset",
+        "schemaOrg": "Dataset",
+        "resourceType": "Dataset/Paleoecological Sample Data",
+        "resourceTypeGeneral": "Dataset"
+    },
+    "relatedIdentifiers": [
+        {
+            "relationType": "IsMetadataFor",
+            "relatedIdentifier": "api.neotomadb.org/v1/downloads/1001",
+            "relatedIdentifierType": "URL",
+            "relatedMetadataScheme": "json"
+        },
+        {
+            "relationType": "IsMetadataFor",
+            "relatedIdentifier": "data.neotomadb.org/datasets/1001/index.html",
+            "relatedIdentifierType": "URL",
+            "relatedMetadataScheme": "json"
+        },
+        {
+            "relationType": "IsDocumentedBy",
+            "relatedIdentifier": "doi:10.7202/033027ar",
+            "relatedIdentifierType": "DOI"
+        }
+    ],
+    "relatedItems": [],
+    "sizes": [
+        "12 KB"
+    ],
+    "formats": [
+        "XML",
+        "TLX",
+        "JSON"
+    ],
+    "version": "None",
+    "rightsList": [
+        {
+            "rights": "CC-BY4",
+            "rightsUri": "http://creativecommons.org/licenses/by/4.0/deed.en_US"
+        }
+    ],
+    "descriptions": [
+        {
+            "lang": "EN",
+            "description": "Raw data for the Hail Lake pollen dataset obtained from the Neotoma Paleoecological Database.",
+            "descriptionType": "Abstract"
+        }
+    ],
+    "geoLocations": [],
+    "fundingReferences": [],
+    "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtMyIgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtMyBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC0zL21ldGFkYXRhLnhzZCI+ICA8aWRlbnRpZmllciBpZGVudGlmaWVyVHlwZT0iRE9JIj4xMC4yMTIzMy9OMzFEOVc8L2lkZW50aWZpZXI+ICA8Y3JlYXRvcnM+ICAgIDxjcmVhdG9yPiAgICAgIDxjcmVhdG9yTmFtZT5Dd3luYXIsIExlcyBDLjwvY3JlYXRvck5hbWU+ICAgICAgPGFmZmlsaWF0aW9uPkRlcGFydG1lbnQgb2YgQmlvbG9neSwgVW5pdmVyc2l0eSBvZiBOZXcgQnJ1bnN3aWNrLCBCYWcgU2VydmljZSBOdW1iZXIgNDUxMTEsIEZyZWRlcmljdG9uLCBOZXcgQnJ1bnN3aWNrIEUzQiA2RTEsIENhbmFkYTwvYWZmaWxpYXRpb24+ICAgIDwvY3JlYXRvcj4gIDwvY3JlYXRvcnM+ICA8dGl0bGVzPiAgICA8dGl0bGUgeG1sOmxhbmc9ImVuLXVzIj5IYWlsIExha2UgcG9sbGVuIGRhdGFzZXQ8L3RpdGxlPiAgPC90aXRsZXM+ICA8cHVibGlzaGVyPk5lb3RvbWEgUGFsZW9lY29sb2dpY2FsIERhdGFiYXNlPC9wdWJsaXNoZXI+ICA8cHVibGljYXRpb25ZZWFyPjIwMTc8L3B1YmxpY2F0aW9uWWVhcj4gIDxzdWJqZWN0cz4gICAgPHN1YmplY3Qgc3ViamVjdFNjaGVtZT0iTGlicmFyeSBvZiBDb25ncmVzcyIgc2NoZW1lVVJJPSJodHRwOi8vaWQubG9jLmdvdi9hdXRob3JpdGllcy9zdWJqZWN0cyI+UGFsZW9lY29sb2d5PC9zdWJqZWN0PiAgPC9zdWJqZWN0cz4gIDxjb250cmlidXRvcnM+ICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IlJlc2VhcmNoZXIiPiAgICAgIDxjb250cmlidXRvck5hbWU+RHV2YWxsLCBNYXRoaWV1IEwuPC9jb250cmlidXRvck5hbWU+ICAgIDwvY29udHJpYnV0b3I+ICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkRhdGFDb2xsZWN0b3IiPiAgICAgIDxjb250cmlidXRvck5hbWU+Q3d5bmFyLCBMZXMgQy48L2NvbnRyaWJ1dG9yTmFtZT4gICAgPC9jb250cmlidXRvcj4gICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iUHJvamVjdExlYWRlciI+ICAgICAgPGNvbnRyaWJ1dG9yTmFtZT5Dd3luYXIsIExlcyBDLjwvY29udHJpYnV0b3JOYW1lPiAgICA8L2NvbnRyaWJ1dG9yPiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJEYXRhQ3VyYXRvciI+ICAgICAgPGNvbnRyaWJ1dG9yTmFtZT5HcmltbSwgRXJpYyBDaHJpc3RvcGhlcjwvY29udHJpYnV0b3JOYW1lPiAgICA8L2NvbnRyaWJ1dG9yPiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJSZXNlYXJjaGVyIj4gICAgICA8Y29udHJpYnV0b3JOYW1lPkN3eW5hciwgTGVzIEMuPC9jb250cmlidXRvck5hbWU+ICAgIDwvY29udHJpYnV0b3I+ICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IlJlc2VhcmNoZXIiPiAgICAgIDxjb250cmlidXRvck5hbWU+U3BlYXIsIFJheSBXLjwvY29udHJpYnV0b3JOYW1lPiAgICA8L2NvbnRyaWJ1dG9yPiAgPC9jb250cmlidXRvcnM+ICA8ZGF0ZXM+ICAgIDxkYXRlIGRhdGVUeXBlPSJTdWJtaXR0ZWQiPjE5OTgtMDctMDU8L2RhdGU+ICAgIDxkYXRlIGRhdGVUeXBlPSJTdWJtaXR0ZWQiPjE5OTgtMDctMDU8L2RhdGU+ICAgIDxkYXRlIGRhdGVUeXBlPSJDcmVhdGVkIj4xOTk4LTA3LTA1PC9kYXRlPiAgICA8ZGF0ZSBkYXRlVHlwZT0iVXBkYXRlZCI+MTk5OC0wNy0wNTwvZGF0ZT4gIDwvZGF0ZXM+ICA8bGFuZ3VhZ2U+RW5nbGlzaDwvbGFuZ3VhZ2U+ICA8cmVzb3VyY2VUeXBlIHJlc291cmNlVHlwZUdlbmVyYWw9IkRhdGFzZXQiPkRhdGFzZXQvUGFsZW9lY29sb2dpY2FsIFNhbXBsZSBEYXRhPC9yZXNvdXJjZVR5cGU+ICA8cmVsYXRlZElkZW50aWZpZXJzPiAgICA8cmVsYXRlZElkZW50aWZpZXIgcmVsYXRpb25UeXBlPSJJc01ldGFkYXRhRm9yIiByZWxhdGVkSWRlbnRpZmllclR5cGU9IlVSTCIgcmVsYXRlZE1ldGFkYXRhU2NoZW1lPSJqc29uIj5hcGkubmVvdG9tYWRiLm9yZy92MS9kb3dubG9hZHMvMTAwMTwvcmVsYXRlZElkZW50aWZpZXI+ICAgIDxyZWxhdGVkSWRlbnRpZmllciByZWxhdGlvblR5cGU9IklzTWV0YWRhdGFGb3IiIHJlbGF0ZWRJZGVudGlmaWVyVHlwZT0iVVJMIiByZWxhdGVkTWV0YWRhdGFTY2hlbWU9Impzb24iPmRhdGEubmVvdG9tYWRiLm9yZy9kYXRhc2V0cy8xMDAxL2luZGV4Lmh0bWw8L3JlbGF0ZWRJZGVudGlmaWVyPiAgICA8cmVsYXRlZElkZW50aWZpZXIgcmVsYXRpb25UeXBlPSJJc0RvY3VtZW50ZWRCeSIgcmVsYXRlZElkZW50aWZpZXJUeXBlPSJET0kiPmRvaToxMC43MjAyLzAzMzAyN2FyPC9yZWxhdGVkSWRlbnRpZmllcj4gIDwvcmVsYXRlZElkZW50aWZpZXJzPiAgPHNpemVzPiAgICA8c2l6ZT4xMiBLQjwvc2l6ZT4gIDwvc2l6ZXM+ICA8Zm9ybWF0cz4gICAgPGZvcm1hdD5YTUw8L2Zvcm1hdD4gICAgPGZvcm1hdD5UTFg8L2Zvcm1hdD4gICAgPGZvcm1hdD5KU09OPC9mb3JtYXQ+ICA8L2Zvcm1hdHM+ICA8ZGVzY3JpcHRpb25zPiAgICA8ZGVzY3JpcHRpb24gZGVzY3JpcHRpb25UeXBlPSJBYnN0cmFjdCIgeG1sOmxhbmc9IkVOIj5SYXcgZGF0YSBmb3IgdGhlIEhhaWwgTGFrZSBwb2xsZW4gZGF0YXNldCBvYnRhaW5lZCBmcm9tIHRoZSBOZW90b21hIFBhbGVvZWNvbG9naWNhbCBEYXRhYmFzZS48L2Rlc2NyaXB0aW9uPiAgPC9kZXNjcmlwdGlvbnM+ICA8cmlnaHRzTGlzdD4gICAgPHJpZ2h0cyByaWdodHNVUkk9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL2xpY2Vuc2VzL2J5LzQuMC9kZWVkLmVuX1VTIj5DQy1CWTQ8L3JpZ2h0cz4gIDwvcmlnaHRzTGlzdD4gIDxnZW9Mb2NhdGlvbnM+ICAgIDxnZW9Mb2NhdGlvbj4gICAgICA8Z2VvTG9jYXRpb25Cb3g+NjAuMDMzMyAtMTI5LjAxNyA2MC4wMzMzIC0xMjkuMDE3PC9nZW9Mb2NhdGlvbkJveD4gICAgPC9nZW9Mb2NhdGlvbj4gIDwvZ2VvTG9jYXRpb25zPjwvcmVzb3VyY2U+",
+    "url": "http://data.neotomadb.org/datasets/1001",
+    "contentUrl": "None",
+    "metadataVersion": 0,
+    "schemaVersion": "http://datacite.org/schema/kernel-3",
+    "source": "None",
+    "isActive": "True",
+    "state": "findable",
+    "reason": "None",
+    "landingPage": "None",
+    "viewCount": 0,
+    "viewsOverTime": [],
+    "downloadCount": 0,
+    "downloadsOverTime": [],
+    "referenceCount": 0,
+    "citationCount": 0,
+    "citationsOverTime": [],
+    "partCount": 0,
+    "partOfCount": 0,
+    "versionCount": 0,
+    "versionOfCount": 0,
+    "created": "2017-04-16T03:46:28.000Z",
+    "registered": "2017-04-16T03:46:29.000Z",
+    "published": "2017",
+    "updated": "2020-09-18T19:49:33.000Z"
+}

@@ -1,0 +1,277 @@
+{
+    "doi": "10.21233/005w-pq53",
+    "url": "http://data-dev.neotomadb.org/46223",
+    "dates": [{
+        "date": "2019-09-11",
+        "dateType": "Submitted"
+    }, {
+        "date": "2019",
+        "dateType": "Issued"
+    }],
+    "sizes": ["14 KB"],
+    "state": "findable",
+    "reason": null,
+    "source": "mds",
+    "titles": [{
+        "lang": "en-us",
+        "title": "Upper Rae L. water chemistry dataset"
+    }],
+    "created": "2019-11-04T08:56:41.000Z",
+    "formats": ["JSON"],
+    "updated": "2020-07-30T08:22:16.000Z",
+    "version": "1.0",
+    "creators": [{
+        "name": "Whitehead, Donald R.",
+        "nameType": "Personal",
+        "givenName": "Donald R.",
+        "familyName": "Whitehead",
+        "affiliation": [],
+        "nameIdentifiers": []
+    }, {
+        "name": "Norton, Stephen A.",
+        "nameType": "Personal",
+        "givenName": "Stephen A.",
+        "familyName": "Norton",
+        "affiliation": [],
+        "nameIdentifiers": []
+    }, {
+        "name": "Whiting, Mark",
+        "nameType": "Personal",
+        "givenName": "Mark",
+        "familyName": "Whiting",
+        "affiliation": [],
+        "nameIdentifiers": []
+    }, {
+        "name": "Holmes, Robert",
+        "nameType": "Personal",
+        "givenName": "Robert",
+        "familyName": "Holmes",
+        "affiliation": [],
+        "nameIdentifiers": []
+    }, {
+        "name": "Stoddard, John",
+        "nameType": "Personal",
+        "givenName": "John",
+        "familyName": "Stoddard",
+        "affiliation": [],
+        "nameIdentifiers": []
+    }, {
+        "name": "Melack, John",
+        "nameType": "Personal",
+        "givenName": "John",
+        "familyName": "Melack",
+        "affiliation": [],
+        "nameIdentifiers": []
+    }],
+    "isActive": true,
+    "language": "en",
+    "subjects": [{
+        "subject": "Paleoecology",
+        "subjectScheme": "Library of Congress"
+    }],"container": {},
+    "partOfCount": 0,
+    "contributors": [{
+        "name": "Holmes, Robert",
+        "nameType": "Personal",
+        "givenName": "Robert",
+        "familyName": "Holmes",
+        "affiliation": [],
+        "contributorType": "ProjectLeader",
+        "nameIdentifiers": []
+    }, {
+        "name": "Holmes, Robert",
+        "nameType": "Personal",
+        "givenName": "Robert",
+        "familyName": "Holmes",
+        "affiliation": [],
+        "contributorType": "Researcher",
+        "nameIdentifiers": []
+    }, {
+        "name": "Melack, John",
+        "nameType": "Personal",
+        "givenName": "John",
+        "familyName": "Melack",
+        "affiliation": [],
+        "contributorType": "ProjectLeader",
+        "nameIdentifiers": []
+    }, {
+        "name": "Melack, John",
+        "nameType": "Personal",
+        "givenName": "John",
+        "familyName": "Melack",
+        "affiliation": [],
+        "contributorType": "Researcher",
+        "nameIdentifiers": []
+    }, {
+        "name": "Norton, Stephen A.",
+        "nameType": "Personal",
+        "givenName": "Stephen A.",
+        "familyName": "Norton",
+        "affiliation": [],
+        "contributorType": "ProjectLeader",
+        "nameIdentifiers": []
+    }, {
+        "name": "Norton, Stephen A.",
+        "nameType": "Personal",
+        "givenName": "Stephen A.",
+        "familyName": "Norton",
+        "affiliation": [],
+        "contributorType": "Researcher",
+        "nameIdentifiers": []
+    }, {
+        "name": "Ochs, Cliff",
+        "nameType": "Personal",
+        "givenName": "Cliff",
+        "familyName": "Ochs",
+        "affiliation": [],
+        "contributorType": "Researcher",
+        "nameIdentifiers": []
+    }, {
+        "name": "Roman, William",
+        "nameType": "Personal",
+        "givenName": "William",
+        "familyName": "Roman",
+        "affiliation": [],
+        "contributorType": "DataCurator",
+        "nameIdentifiers": []
+    }, {
+        "name": "Roman, William",
+        "nameType": "Personal",
+        "givenName": "William",
+        "familyName": "Roman",
+        "affiliation": [],
+        "contributorType": "Researcher",
+        "nameIdentifiers": []
+    }, {
+        "name": "Stoddard, John",
+        "nameType": "Personal",
+        "givenName": "John",
+        "familyName": "Stoddard",
+        "affiliation": [],
+        "contributorType": "DataCollector",
+        "nameIdentifiers": []
+    }, {
+        "name": "Stoddard, John",
+        "nameType": "Personal",
+        "givenName": "John",
+        "familyName": "Stoddard",
+        "affiliation": [],
+        "contributorType": "ProjectLeader",
+        "nameIdentifiers": []
+    }, {
+        "name": "Stoddard, John",
+        "nameType": "Personal",
+        "givenName": "John",
+        "familyName": "Stoddard",
+        "affiliation": [],
+        "contributorType": "Researcher",
+        "nameIdentifiers": []
+    }, {
+        "name": "Whitehead, Donald R.",
+        "nameType": "Personal",
+        "givenName": "Donald R.",
+        "familyName": "Whitehead",
+        "affiliation": [],
+        "contributorType": "ProjectLeader",
+        "nameIdentifiers": []
+    }, {
+        "name": "Whitehead, Donald R.",
+        "nameType": "Personal",
+        "givenName": "Donald R.",
+        "familyName": "Whitehead",
+        "affiliation": [],
+        "contributorType": "Researcher",
+        "nameIdentifiers": []
+    }, {
+        "name": "Whiting, Mark",
+        "nameType": "Personal",
+        "givenName": "Mark",
+        "familyName": "Whiting",
+        "affiliation": [],
+        "contributorType": "ProjectLeader",
+        "nameIdentifiers": []
+    }, {
+        "name": "Whiting, Mark",
+        "nameType": "Personal",
+        "givenName": "Mark",
+        "familyName": "Whiting",
+        "affiliation": [],
+        "contributorType": "Researcher",
+        "nameIdentifiers": []
+    }],
+    "descriptions": [{
+        "lang": "EN",
+        "description": "Raw data for the Upper Rae L. water chemistry dataset obtained from the Neotoma Paleoecology Database.",
+        "descriptionType": "Abstract"
+    }],
+    "publisher": "Neotoma Paleoecological Database",
+    "viewCount": 0,
+    "contentUrl": null,
+    "registered": "2019-11-04T08:56:41.000Z",
+    "rightsList": [{
+        "rights": "CC-BY4",
+        "rightsUri": "http://creativecommons.org/licenses/by/4.0/deed.en_US"
+    }],
+    "geoLocations": [{
+        "geoLocationPolygon": [{
+            "polygonPoint": {
+                "pointLatitude": "36.79766",
+                "pointLongitude": "-118.40258"
+            }
+        }, {
+            "polygonPoint": {
+                "pointLatitude": "36.79766",
+                "pointLongitude": "-118.39597"
+            }
+        }, {
+            "polygonPoint": {
+                "pointLatitude": "36.80464",
+                "pointLongitude": "-118.39597"
+            }
+        }, {
+            "polygonPoint": {
+                "pointLatitude": "36.80464",
+                "pointLongitude": "-118.40258"
+            }
+        }, {
+            "polygonPoint": {
+                "pointLatitude": "36.79766",
+                "pointLongitude": "-118.40258"
+            }
+        }]
+    }],
+    "versionCount": 0,
+    "citationCount": 0,
+    "downloadCount": 0,
+    "schemaVersion": null,
+    "referenceCount": 0,
+    "versionOfCount": 0,
+    "metadataVersion": 0,
+    "publicationYear": 2019,
+    "fundingReferences": [],
+    "relatedIdentifiers": [{
+        "relationType": "IsMetadataFor",
+        "relatedIdentifier": "api-dev.neotomadb.org/v2.0/data/downloads/46223",
+        "relatedIdentifierType": "URL",
+        "relatedMetadataScheme": "json"
+    }, {
+        "relationType": "IsMetadataFor",
+        "relatedIdentifier": "data.neotomadb.org/datasets/46223",
+        "relatedIdentifierType": "URL",
+        "relatedMetadataScheme": "html"
+    }],
+    "types": {
+        "ris": "DATA",
+        "bibtex": "misc",
+        "citeproc": "dataset",
+        "schemaOrg": "Dataset",
+        "resourceType": "Dataset/Paleoecological Sample Data",
+        "resourceTypeGeneral": "Dataset"
+    },
+    "publicationYear": "2015",
+    "identifiers": [{
+        "identifierType": "DOI",
+        "identifier": "10.1234/foo.bar"
+    }],
+    "schemaVersion": "http://datacite.org/schema/kernel-4"
+}

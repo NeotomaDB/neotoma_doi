@@ -1,0 +1,136 @@
+{
+    "doi": "10.21233/0v0x-3e16",
+    "url": "http://data-dev.neotomadb.org/40050",
+    "dates": [{
+        "date": "2018-09-14",
+        "dateType": "Submitted"
+    }, {
+        "date": "2019",
+        "dateType": "Issued"
+    }],
+    "sizes": ["24 KB"],
+    "state": "findable",
+    "types": {
+        "ris": "DATA",
+        "bibtex": "misc",
+        "citeproc": "dataset",
+        "schemaOrg": "Dataset",
+        "resourceType": "Dataset/Paleoecological Sample Data",
+        "resourceTypeGeneral": "Dataset"
+    },
+    "reason": null,
+    "source": "mds",
+    "titles": [{
+        "lang": "en-us",
+        "title": "Bass Lake diatom dataset"
+    }],
+    "created": "2019-04-09T08:06:54.000Z",
+    "formats": ["JSON"],
+    "updated": "2020-07-29T07:48:00.000Z",
+    "version": "1.0",
+    "creators": [{
+        "name": "USEPA And Collaborators",
+        "affiliation": [""],
+        "contributorType": "Researcher",
+        "nameType": "Organizational"
+    }],
+    "isActive": true,
+    "language": "en",
+    "subjects": [{
+        "subject": "Paleoecology",
+        "subjectScheme": "Library of Congress"
+    }],
+    "container": {},
+    "partCount": 0,
+    "publisher": "Neotoma Paleoecological Database",
+    "viewCount": 0,
+    "contentUrl": null,
+    "registered": "2019-08-19T20:40:21.000Z",
+    "rightsList": [{
+        "rights": "CC-BY4",
+        "rightsUri": "http://creativecommons.org/licenses/by/4.0/deed.en_US"
+    }],
+    "identifiers": [{
+        "identifierType": "DOI",
+        "identifier": "10.21233/0v0x-3e16"
+    }],
+    "partOfCount": 0,
+    "contributors": [{
+        "name": "Lama, Sajan",
+        "nameType": "Personal",
+        "givenName": "Sajan",
+        "familyName": "Lama",
+        "affiliation": [""],
+        "contributorType": "DataCurator"
+    }, {
+        "name": "Seidler, Jan",
+        "nameType": "Personal",
+        "givenName": "Jan",
+        "familyName": "Seidler",
+        "affiliation": [""],
+        "contributorType": "DataCollector"
+    }, {
+        "name": "USEPA",
+        "affiliation": [""],
+        "contributorType": "Researcher",
+        "nameType": "Organizational"
+    }, {
+        "name": "USEPA And Collaborators",
+        "affiliation": [""],
+        "contributorType": "Researcher",
+        "nameType": "Organizational"
+    }],
+    "descriptions": [{
+        "lang": "EN",
+        "description": "Raw data for the Bass Lake diatom dataset obtained from the Neotoma Paleoecological Database.",
+        "descriptionType": "Abstract"
+    }],
+    "geoLocations": [{
+        "geoLocationPolygon": [{
+            "polygonPoint": {
+                "pointLatitude": "43.81443",
+                "pointLongitude": "-94.08565"
+            }
+        }, {
+            "polygonPoint": {
+                "pointLatitude": "43.81443",
+                "pointLongitude": "-94.0726"
+            }
+        }, {
+            "polygonPoint": {
+                "pointLatitude": "43.82401",
+                "pointLongitude": "-94.0726"
+            }
+        }, {
+            "polygonPoint": {
+                "pointLatitude": "43.82401",
+                "pointLongitude": "-94.08565"
+            }
+        }, {
+            "polygonPoint": {
+                "pointLatitude": "43.81443",
+                "pointLongitude": "-94.08565"
+            }
+        }]
+    }],
+    "versionCount": 0,
+    "citationCount": 0,
+    "downloadCount": 0,
+    "schemaVersion": "http://datacite.org/schema/kernel-4",
+    "referenceCount": 0,
+    "versionOfCount": 0,
+    "metadataVersion": 0,
+    "publicationYear": "2019",
+    "fundingReferences": [],
+    "relatedIdentifiers": [{
+        "relationType": "IsMetadataFor",
+        "relatedIdentifier": "api-dev.neotomadb.org/v2.0/data/downloads/40050",
+        "relatedIdentifierType": "URL",
+        "relatedMetadataScheme": "json"
+    }, {
+        "relationType": "IsMetadataFor",
+        "relatedIdentifier": "data.neotomadb.org/datasets/40050",
+        "relatedIdentifierType": "URL",
+        "relatedMetadataScheme": "html"
+    }]
+}

@@ -21,3 +21,7 @@ alldois.json
 doierrors.log
 
 *.log
+
+.env
+
+neotomadoipy/neotomadoi/uv.lock
