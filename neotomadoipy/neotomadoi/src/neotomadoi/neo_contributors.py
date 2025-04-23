@@ -1,7 +1,7 @@
 import psycopg2
 import psycopg2.extras
 
-def neo_contributors(con:psycopg2.connect, datasetid:int)->object:
+def neo_contributors(con:psycopg2.connect, self)->object:
     query = """
         WITH chronfolk AS (
         SELECT DISTINCT  contactid,
@@ -48,7 +48,7 @@ def neo_contributors(con:psycopg2.connect, datasetid:int)->object:
                         jsonb_agg(DISTINCT 
                                 jsonb_build_object('nameIdentifier', exct.identifier,
                                                    'nameIdentifierScheme', exdb.extdatabasename, 
-                                                   'schemeUri', exdb.url)) AS nameIdentifiers
+                                                   'schemeUri', exdb.url)) AS "nameIdentifiers"
         FROM (SELECT * FROM analyst
         UNION ALL
         (SELECT * FROM coauth)
@@ -66,9 +66,12 @@ def neo_contributors(con:psycopg2.connect, datasetid:int)->object:
         GROUP BY cts.contactid, lister.contributortype;
     """
     with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-        cur.execute(query, {'datasetid': datasetid})
+        cur.execute(query, {'datasetid': self.datasetid})
         response = cur.fetchall()
         contributors = []
         for i in response:
-            contributors.append(dict(i))
+            creator = dict(i)
+            if not all([i.get('nameIdentifier') for i in creator.get('nameIdentifiers')]):
+                out = creator.pop('nameIdentifiers', None)
+            contributors.append(creator)
     return contributors

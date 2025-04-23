@@ -12,8 +12,9 @@ config.email = "goring@wisc.edu"
 def neo_subjects(con:psycopg2.connect, self)->object:
     pubs = []
     topics = []
+    subjects = []
     pub_query = """
-        SELECT DISTINCT pub.doi as doi
+        SELECT DISTINCT TRIM(pub.doi) as doi
         FROM ndb.datasetpublications AS dsp
         INNER JOIN ndb.publications AS pub ON dsp.publicationid = pub.publicationid
         WHERE dsp.datasetid = %(datasetid)s
@@ -25,13 +26,16 @@ def neo_subjects(con:psycopg2.connect, self)->object:
             pubs.append(dict(i))
     if len(pubs) > 0:
         for i in pubs:
-            open_record = Works()['https://doi.org/' + i.get('doi')]
-            topics = [j for j in open_record.get('topics') if j.get('score') > 0.5]
-            topics.append(open_record.get('primary_topic'))
-            subjects = [{'subjectScheme': 'OpenAlex Topic',
-                             'schemeURI': 'https://openalex.org',
-                             'subject': top.get('display_name'),
-                             'valueURI': top.get('id')} for top in topics]
+            try:
+                open_record = Works()['https://doi.org/' + i.get('doi')]
+                topics = [j for j in open_record.get('topics') if j.get('score') > 0.5]
+                topics.append(open_record.get('primary_topic'))
+                subjects = [{'subjectScheme': 'OpenAlex Topic',
+                            'schemeUri': 'https://openalex.org',
+                            'subject': top.get('display_name'),
+                            'valueUri': top.get('id')} for top in topics]
+            except Exception as e:
+                print(e)
     if self.defaults:
         subjects = subjects + self.defaults['subjects']
     subjects = [json.loads(i) for i in set([json.dumps(i) for i in subjects])]

@@ -4,7 +4,7 @@ from shapely import wkt
 
 def neo_location(con:psycopg2.connect, self)->object:
 
-    geolocation = {'place': None}
+    geolocation = {'geoLocationPlace': None}
 
 
     loc_query = """
@@ -43,5 +43,5 @@ def neo_location(con:psycopg2.connect, self)->object:
         cur.execute(place_query, {'datasetid': self.datasetid})
         response = cur.fetchone()
     response_loc = 'Site name: ' + response[0] + '; ' + '; '.join(reversed([i for i in response[1:] if i]))
-    geolocation['place'] = response_loc
-    return [ {'geolocation': geolocation} ]
+    geolocation['geoLocationPlace'] = response_loc
+    return [ geolocation ]
