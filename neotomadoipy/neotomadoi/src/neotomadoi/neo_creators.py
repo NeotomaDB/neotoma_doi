@@ -1,7 +1,15 @@
 import psycopg2
 import psycopg2.extras
 
-def neo_creators(con:psycopg2.connect, self)->object:
+def neo_creators(con:psycopg2.connect, self)->list:
+    """_Obtain a list of Neotoma dataset PIs for a dataset._
+
+    Args:
+        con (psycopg2.connect): _description_
+
+    Returns:
+        list: _A list of dataset PIs, including any external identifiers._
+    """    
 
     query = """
         SELECT DISTINCT cts.contactname AS name,

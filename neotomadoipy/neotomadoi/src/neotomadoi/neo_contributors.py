@@ -1,7 +1,15 @@
 import psycopg2
 import psycopg2.extras
 
-def neo_contributors(con:psycopg2.connect, self)->object:
+def neo_contributors(con:psycopg2.connect, self)->list:
+    """_Obtain a list of the dataset contributors by activity for a dataset._
+
+    Args:
+        con (psycopg2.connect): _A valid connection the the Neotoma Database server_
+
+    Returns:
+        list: _A list of Neotoma contributors, including external identifiers when available._
+    """    
     query = """
         WITH chronfolk AS (
         SELECT DISTINCT  contactid,
