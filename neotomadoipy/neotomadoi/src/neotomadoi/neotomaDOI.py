@@ -17,7 +17,7 @@ from datacite import schema45
 import requests
 import psycopg2
 import psycopg2.extras
-
+import deepdiff.diff as dd
 
 class neotomaDOI:
     def __init__(self, datasetid:int, defaults: str = None):
@@ -72,7 +72,7 @@ class neotomaDOI:
         if self.identifiers:
             dois = [i.get('identifier') for i in self.identifiers if i.get('identifierType') == 'DOI']
             for i in dois:
-                doi_call = requests.get(f'https://api.test.datacite.org/dois/{i}')
+                doi_call = requests.get(f'https://api.datacite.org/dois/{i}')
                 if doi_call.status_code == 200:
                     self.meta.append(doi_call.json().get('data').get('attributes'))
     def update_doi(self):
@@ -101,7 +101,7 @@ class neotomaDOI:
                     'version': version
             }}
             try:
-                modifier = requests.put(f'https://api.test.datacite.org/dois/{i.get("identifier")}',
+                modifier = requests.put(f'https://api.datacite.org/dois/{i.get("identifier")}',
                             headers = {'Content-Type': 'application/vnd.api+json'},
                             auth = (self.client.get('username'), self.client.get('password')),
                             json = payload)
@@ -132,11 +132,55 @@ class neotomaDOI:
         payload['attributes']['url'] = f'https://data.neotomadb.org/datasets/{self.datasetid}'
         payload['attributes']['version'] = '1.0'
         try:
-            created = requests.post(f'https://api.test.datacite.org/dois',
+            created = requests.post(f'https://api.datacite.org/dois',
                                 headers = {'Content-Type': 'application/vnd.api+json'},
                                 auth = (self.client.get('username'), self.client.get('password')),
                                 json = {'data': payload})
             if created.status_code != 201:
+                raise requests.RequestException(f'Failed to create DOI: {created.text}')
+            else:
+                self.meta = created.json().get('data').get('attributes')
+                self.identifiers = [{'identifier': created.json().get('data').get('id'),
+                                     'identifierType': 'DOI'}]
+                insertQuery = """INSERT INTO ndb.datasetdoi (datasetid, doi, recdatecreated)
+                                 VALUES (%(datasetid)s, %(identifier)s, NOW()::timestamp)
+                                 RETURNING datasetid"""
+                con = neo_connect()
+                with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                    cur.execute(insertQuery, {'datasetid': self.datasetid,
+                                              'identifier': self.identifiers[0].get('identifier')})
+        except Exception as e:
+            print(e)
+    def meta_diff(self):
+        current = self.data
+        old = self.meta[0]
+        self.meta_diff = dd.DeepDiff(old, current, ignore_order = True)
+    def deactivate(self):
+        if self.identifiers:
+            self.update_doi()
+        else:
+            outcome = None
+            try:
+                outcome = self.validate()
+            except Exception as e:
+                outcome = True
+            if outcome:
+                print('Validation error. Check with the `validate()` method.')
+                return None
+        payload = {
+            "type": "dois",
+            "attributes": self.data
+        }
+        payload['attributes']['event'] = "hide"
+        payload['attributes']['prefix'] = self.client.get('prefix')
+        payload['attributes']['url'] = f'https://data.neotomadb.org/datasets/{self.datasetid}'
+        payload['attributes']['version'] = '1.0'
+        try:
+            created = requests.put(f'https://api.datacite.org/dois',
+                                headers = {'Content-Type': 'application/vnd.api+json'},
+                                auth = (self.client.get('username'), self.client.get('password')),
+                                json = {'data': payload})
+            if created.status_code != 200:
                 raise requests.RequestException(f'Failed to create DOI: {created.text}')
             else:
                 self.meta = created.json().get('data').get('attributes')

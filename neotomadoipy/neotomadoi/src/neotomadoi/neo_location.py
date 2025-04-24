@@ -46,12 +46,13 @@ def neo_location(con:psycopg2.connect, self)->object:
     if response is None:
         place_query = """
         with dsset as (
-            select
+            SELECT
             st.geog, st.sitename
             from ndb.sites as st
             inner join ndb.collectionunits as cu on cu.siteid = st.siteid
             inner join ndb.datasets as ds on ds.collectionunitid = cu.collectionunitid
             where ds.datasetid = %(datasetid)s
+            LIMIT 1
         )
         select
         st.sitename,
@@ -69,7 +70,7 @@ def neo_location(con:psycopg2.connect, self)->object:
                 gadm.name_3,
                 gadm.name_4,
                 gadm.name_5,
-                gadm.shape <-> st.geog as dist
+                gadm.shape::geometry <-> st.geog::geometry as dist
         from ap.gadm as gadm
         order by dist
         limit 1) gadm;"""
