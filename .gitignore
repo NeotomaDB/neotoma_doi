@@ -25,3 +25,5 @@ doierrors.log
 .env
 
 neotomadoipy/neotomadoi/uv.lock
+
+neotomadoipy/neotomadoi/src/neotomadoi/__pycache__/
