@@ -6,7 +6,6 @@ def neo_location(con:psycopg2.connect, self)->object:
 
     geolocation = {'geoLocationPlace': None}
 
-
     loc_query = """
         SELECT
             ST_AsText(ST_extent(st_buffer(st.geog::geometry, 0.001))) AS polygon
@@ -39,9 +38,48 @@ def neo_location(con:psycopg2.connect, self)->object:
             inner join ndb.datasets as ds on ds.collectionunitid = cu.collectionunitid
             inner join ap.gadm as gadm on st_contains(gadm.shape, st.geog::geometry)
             where ds.datasetid = %(datasetid)s;"""
+
     with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
         cur.execute(place_query, {'datasetid': self.datasetid})
         response = cur.fetchone()
+    
+    if response is None:
+        place_query = """
+        with dsset as (
+            select
+            st.geog, st.sitename
+            from ndb.sites as st
+            inner join ndb.collectionunits as cu on cu.siteid = st.siteid
+            inner join ndb.datasets as ds on ds.collectionunitid = cu.collectionunitid
+            where ds.datasetid = %(datasetid)s
+        )
+        select
+        st.sitename,
+            gadm.name_0,
+            gadm.name_1,
+            gadm.name_2,
+            gadm.name_3,
+            gadm.name_4,
+            gadm.name_5
+        from dsset as st
+        cross join lateral (
+        select  gadm.name_0,
+                gadm.name_1,
+                gadm.name_2,
+                gadm.name_3,
+                gadm.name_4,
+                gadm.name_5,
+                gadm.shape <-> st.geog as dist
+        from ap.gadm as gadm
+        order by dist
+        limit 1) gadm;"""
+
+        with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+            cur.execute(place_query, {'datasetid': self.datasetid})
+            response = cur.fetchone()
+        if response is None:
+            raise ValueError("This site cannot return a close neighbour.")
+            
     response_loc = 'Site name: ' + response[0] + '; ' + '; '.join(reversed([i for i in response[1:] if i]))
     geolocation['geoLocationPlace'] = response_loc
     return [ geolocation ]
