@@ -17,11 +17,11 @@ DCITE = json.loads(os.getenv('DCITE'))
 datacite_meta = {"username": DCITE.get('user'),
                  "password": DCITE.get('test').get('pw'),
                  "prefix":  DCITE.get('test').get('handle'),
-                 "test_mode":True}
+                 "test_mode": True}
 
 new_doi.set_user(datacite_meta)
-new_doi.identifiers = None
-new_doi.mint_doi()
+# new_doi.identifiers = None
+# new_doi.mint_doi()
 
 con = neotomadoi.neo_connect()
 
@@ -49,3 +49,4 @@ for i in datasetids:
 query = """SELECT doi.* FROM doi.doimeta AS doi
            LEFT join ndb.datasets AS ds ON ds.datasetid = doi.datasetid
            WHERE ds.datasetid IS NULL;"""
+
