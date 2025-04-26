@@ -1,6 +1,5 @@
 import psycopg2
 import psycopg2.extras
-import pyalex
 from pyalex import Works, config
 import json
 
