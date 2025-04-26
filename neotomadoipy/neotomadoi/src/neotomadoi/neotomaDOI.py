@@ -18,6 +18,25 @@ import requests
 import psycopg2
 import psycopg2.extras
 import deepdiff.diff as dd
+from json import dumps
+from enum import Enum
+from typing import Literal
+
+class testMode(Enum):
+    test = 'https://api.test.datacite.org/dois/'
+    prod = 'https://api.datacite.org/dois/'
+
+
+class credentials:
+    def __init__(self, datacite_meta:dict):
+        assert isinstance(datacite_meta, dict), 'You must pass a `dict` as the metatdata.'
+        assert all([i in datacite_meta.keys() for i in ['user', 'mode']]), 'Your client metadata must be a dict with the keys `user`, and `mode`.'
+        assert all([i in datacite_meta.get('mode').keys() for i in ['test', 'prod']]), 'You must have production and test data in your client credentials.'
+        self.data = datacite_meta
+    def mode(self, mode: testMode = testMode.test):
+        output = self.data.get('mode').get(mode.name)
+        output['username'] = self.data.get('user')
+        return output
 
 class neotomaDOI:
     def __init__(self, datasetid:int, defaults: str = None):
@@ -27,10 +46,11 @@ class neotomaDOI:
         else:
             self.defaults = {}
         self.datasetid = datasetid
+        self.mode = testMode.test
         self.data = {
             "creators": None,
             "titles": None,
-            "publisher": self.defaults.get("publisher")[0],
+            "publisher": self.defaults.get("publisher"),
             "publicationYear": str(datetime.now().year),
             "types": self.defaults.get("types"),
             "schemaVersion": self.defaults.get("schemaVersion"),
@@ -38,7 +58,12 @@ class neotomaDOI:
             "rightsList": self.defaults.get("rightsList"),
             "formats": self.defaults.get("formats")
         }
+        self.meta = []
         self.schema = None
+        self.client = None
+        self.datacite_url = testMode.test
+    def __str__(self):
+        return dumps(self.data)
     def add_schema(self, schema):
         with open(schema, 'r', encoding = 'UTF-8') as f:
             self.schema = load(f)
@@ -58,23 +83,34 @@ class neotomaDOI:
                 self.data['titles'] = [neo_title(con, self)]
                 self.data['subjects'] = neo_subjects(con, self)
                 self.data['geoLocations'] = neo_location(con, self)
-                self.identifiers = [neo_identifier(con, self)]
+                self.identifiers = neo_identifier(con, self)
                 self.data['relatedIdentifiers'] = neo_relatedIdentifiers(con, self)
                 self.data['dates'] = neo_dates(con, self)
                 self.data['sizes'] = neo_size(con, self)
                 self.data['descriptions'] = neo_description(con, self)
             except Exception as e:
                 raise ValueError(f"Dataset {self.datasetid} is missing critical metadata values in the database.")
-    def set_user(self, datacite_meta):
-        self.client = datacite_meta
+    def set_user(self, cred:credentials, mode: testMode = testMode.test):
+        if not isinstance(cred, credentials):
+            raise TypeError('Credentials must be of type neotomadoi.credential')
+        self.client = cred
+        self.mode = mode
+    def test_mode(self):
+        self.mode = testMode.test
+    def prod_mode(self):
+        if self.client is None:
+            raise ValueError("You cannot use production mode without credentials.")
+        self.mode = testMode.prod
+    def get_mode(self):
+        return print(f'mode: {self.mode.name}; URL: {self.mode.value}')
     def get_meta(self):
-        self.meta = []
         if self.identifiers:
             dois = [i.get('identifier') for i in self.identifiers if i.get('identifierType') == 'DOI']
             for i in dois:
-                doi_call = requests.get(f'https://api.datacite.org/dois/{i}')
+
+                doi_call = requests.get(self.mode.value + i)
                 if doi_call.status_code == 200:
-                    self.meta.append(doi_call.json().get('data').get('attributes'))
+                    self.meta = doi_call.json().get('data').get('attributes')
     def update_doi(self):
         outcome = None
         try:
@@ -86,7 +122,7 @@ class neotomaDOI:
             return None
         for i in self.identifiers:
             self.get_meta()
-            version = self.meta[0].get('version')
+            version = self.meta.get('version')
             if version:
                 version = version.split('.')
                 version[1] = int(version[1]) + 1
@@ -101,7 +137,7 @@ class neotomaDOI:
                     'version': version
             }}
             try:
-                modifier = requests.put(f'https://api.datacite.org/dois/{i.get("identifier")}',
+                modifier = requests.put(self.mode.value + i.get("identifier"),
                             headers = {'Content-Type': 'application/vnd.api+json'},
                             auth = (self.client.get('username'), self.client.get('password')),
                             json = payload)
@@ -128,13 +164,14 @@ class neotomaDOI:
             "attributes": self.data
         }
         payload['attributes']['event'] = "publish"
-        payload['attributes']['prefix'] = self.client.get('prefix')
+        payload['attributes']['prefix'] = self.client.mode(self.mode).get('handle')
         payload['attributes']['url'] = f'https://data.neotomadb.org/datasets/{self.datasetid}'
         payload['attributes']['version'] = '1.0'
         try:
-            created = requests.post(f'https://api.datacite.org/dois',
+            created = requests.post(self.mode.value,
                                 headers = {'Content-Type': 'application/vnd.api+json'},
-                                auth = (self.client.get('username'), self.client.get('password')),
+                                auth = (self.client.mode(self.mode).get('username'),
+                                        self.client.mode(self.mode).get('pw')),
                                 json = {'data': payload})
             if created.status_code != 201:
                 raise requests.RequestException(f'Failed to create DOI: {created.text}')
@@ -176,7 +213,7 @@ class neotomaDOI:
         payload['attributes']['url'] = f'https://data.neotomadb.org/datasets/{self.datasetid}'
         payload['attributes']['version'] = '1.0'
         try:
-            created = requests.put(f'https://api.datacite.org/dois',
+            created = requests.put(self.mode.value,
                                 headers = {'Content-Type': 'application/vnd.api+json'},
                                 auth = (self.client.get('username'), self.client.get('password')),
                                 json = {'data': payload})
