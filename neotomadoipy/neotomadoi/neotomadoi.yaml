@@ -9,10 +9,10 @@ types:
   resourceType: Dataset/Paleoecological Sample Data
   resourceTypeGeneral: Dataset
 publisher:
-  - name: Neotoma Paleoecology Database
-    publisherIdentifier: 10.17616/R3PD38
-    publisherIdentifierScheme: DOI
-    lang: EN
+  name: Neotoma Paleoecology Database
+  publisherIdentifier: 10.17616/R3PD38
+  publisherIdentifierScheme: DOI
+  lang: EN
 subjects:
   - subject: Paleoecology
     subjectScheme: Library of Congress Subject Headings
