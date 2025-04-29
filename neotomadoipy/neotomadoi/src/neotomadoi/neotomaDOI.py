@@ -58,7 +58,7 @@ class neotomaDOI:
             "rightsList": self.defaults.get("rightsList"),
             "formats": self.defaults.get("formats")
         }
-        self.meta = []
+        self.meta = {}
         self.schema = None
         self.client = None
         self.datacite_url = testMode.test
@@ -105,12 +105,10 @@ class neotomaDOI:
         return print(f'mode: {self.mode.name}; URL: {self.mode.value}')
     def get_meta(self):
         if self.identifiers:
-            dois = [i.get('identifier') for i in self.identifiers if i.get('identifierType') == 'DOI']
-            for i in dois:
-
-                doi_call = requests.get(self.mode.value + i)
-                if doi_call.status_code == 200:
-                    self.meta = doi_call.json().get('data').get('attributes')
+            dois = self.identifiers.get('identifier')
+            doi_call = requests.get(self.mode.value + dois)
+            if doi_call.status_code == 200:
+                self.meta = doi_call.json().get('data').get('attributes')
     def update_doi(self):
         outcome = None
         try:
@@ -120,39 +118,40 @@ class neotomaDOI:
         if outcome:
             print('Validation error. Check with the `validate()` method.')
             return None
-        for i in self.identifiers:
-            self.get_meta()
-            version = self.meta.get('version')
-            if version:
-                version = version.split('.')
-                version[1] = int(version[1]) + 1
-                version = '.'.join([str(i) for i in version])
+        doi = self.identifiers.get('identifier')
+        self.get_meta()
+        version = self.meta.get('version')
+        if version:
+            version = version.split('.')
+            version[1] = int(version[1]) + 1
+            self.data['version'] = '.'.join([str(i) for i in version])
+        else:
+            self.data['version'] = '1.1'
+        payload = {
+            'data': {
+                'type': 'dois',
+                'attributes': self.data,
+                'action': 'update'
+        }}
+        try:
+            modifier = requests.put(self.mode.value + self.identifiers.get("identifier"),
+                        headers = {'Content-Type': 'application/vnd.api+json'},
+                        auth = (self.client.mode(self.mode).get('username'),
+                                self.client.mode(self.mode).get('pw')),
+                        json = payload)
+            if modifier.status_code != 200:
+                raise requests.RequestException(f'Failed to modify DOI: {modifier.text}')
             else:
-                version = '1.1'
-            payload = {
-                'data': {
-                    'type': 'dois',
-                    'attributes': self.data,
-                    'action': 'update',
-                    'version': version
-            }}
-            try:
-                modifier = requests.put(self.mode.value + i.get("identifier"),
-                            headers = {'Content-Type': 'application/vnd.api+json'},
-                            auth = (self.client.get('username'), self.client.get('password')),
-                            json = payload)
-                if modifier.status_code != 200:
-                    raise requests.RequestException(f'Failed to modify DOI: {modifier.text}')
-                else:
-                    self.meta = modifier.json()
-            except Exception as e:
-                print(e)
+                self.meta = self.get_meta()
+        except Exception as e:
+            print(e)
     def mint_doi(self):
         if self.identifiers:
             self.update_doi()
         else:
             outcome = None
             try:
+                self.data['version'] = '1.0'
                 outcome = self.validate()
             except Exception as e:
                 outcome = True
@@ -176,9 +175,10 @@ class neotomaDOI:
             if created.status_code != 201:
                 raise requests.RequestException(f'Failed to create DOI: {created.text}')
             else:
-                self.meta = created.json().get('data').get('attributes')
-                self.identifiers = [{'identifier': created.json().get('data').get('id'),
-                                     'identifierType': 'DOI'}]
+                #self.meta = created.json().get('data').get('attributes')
+                self.identifiers = {'identifier': created.json().get('data').get('id'),
+                                     'identifierType': 'DOI'}
+                self.get_meta()
                 insertQuery = """INSERT INTO ndb.datasetdoi (datasetid, doi, recdatecreated)
                                  VALUES (%(datasetid)s, %(identifier)s, NOW()::timestamp)
                                  RETURNING datasetid"""
@@ -232,3 +232,32 @@ class neotomaDOI:
                                               'identifier': self.identifiers[0].get('identifier')})
         except Exception as e:
             print(e)
+    def freeze_data(self, con, force:bool = False):
+        if self.datasetid:
+            con = neo_connect()
+            query = """
+                SELECT * FROM doi.frozen
+                WHERE datasetid = %(datasetid)s"""
+            with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                cur.execute(query, {'datasetid': self.datasetid})
+                result = cur.fetchone()
+            if not result:
+                freeze = """
+                    INSERT INTO doi.frozen (datasetid, download, recdatecreated)
+                    SELECT df.datasetid,
+                           df.record AS download,
+                        current_timestamp AS recdatecreated
+                    FROM doi.doifreeze(ARRAY[%(datasetid)s]) as df
+                    ON CONFLICT DO NOTHING;
+                """
+                with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                    cur.execute(freeze, {'datasetid': self.datasetid})
+                    cur.execute("SELECT * FROM doi.frozen WHERE datasetid = %(datasetid)s;",
+                                {'datasetid': self.datasetid})
+                    frozen_result = cur.fetchall()
+                if len(frozen_result) > 0:
+                    print("Dataset frozen.")
+            else:
+                raise ValueError("This dataset has already been frozen in the database. You must override manually.")
+        else:
+            raise ValueError("Dataset must have a valid datasetid and be in Neotoma to freeze the dataset.")

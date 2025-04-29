@@ -27,3 +27,7 @@ doierrors.log
 neotomadoipy/neotomadoi/uv.lock
 
 neotomadoipy/neotomadoi/src/neotomadoi/__pycache__/
+
+neotomadoipy/neotomadoi/tests/__pycache__/
+
+neotomadoipy/neotomadoi/.coverage

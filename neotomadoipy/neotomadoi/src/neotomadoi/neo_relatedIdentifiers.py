@@ -9,17 +9,24 @@ def neo_relatedIdentifiers(con:psycopg2.connect, self)->object:
         SELECT doi as identifier,
         'DOI' as identifierType
         FROM doi.doimeta
-        WHERE datasetid = %(datasetid)s
-        LIMIT 1;
+        WHERE datasetid = %(datasetid)s;
     """
 
     with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
         cur.execute(ds_query, {'datasetid': self.datasetid})
-        response = cur.fetchone()
-        doi = dict(response)
+        response = cur.fetchall()
+        if response:
+            for i in response:
+                doi = dict(i)
+                if i[0] != self.identifiers.get('identifier'):
+                    relatedIdentifiers.append({'relatedIdentifierType': 'DOI',
+                                               'relationType': 'IsIdenticalTo',
+                                              #'relatedItemType': 'Dataset',
+                                               'relatedIdentifier': i.get('identifier')})
 
     pub_query = """
-        SELECT DISTINCT pub.doi as doi
+        SELECT DISTINCT pub.doi as doi,
+        'DOI' as identifierType
         FROM ndb.datasetpublications AS dsp
         INNER JOIN ndb.publications AS pub ON dsp.publicationid = pub.publicationid
         WHERE dsp.datasetid = %(datasetid)s
@@ -27,14 +34,14 @@ def neo_relatedIdentifiers(con:psycopg2.connect, self)->object:
     
     with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
         cur.execute(pub_query, {'datasetid': self.datasetid})
-        response = cur.fetchone()
+        response = cur.fetchall()
         if response:
-            pubdoi = dict(response)
-            for i in pubdoi:
+            for i in response:
+                pubdoi = dict(i)
                 relatedIdentifiers.append({'relatedIdentifierType': 'DOI',
                                         'relationType': 'IsSupplementTo',
                                         #'relatedItemType': 'JournalArticle',
-                                        'relatedIdentifier': pubdoi['doi']})
+                                        'relatedIdentifier': pubdoi.get('doi')})
 
     geochron_query = """
         SELECT DISTINCT egc.identifier as identifier,
@@ -52,11 +59,11 @@ def neo_relatedIdentifiers(con:psycopg2.connect, self)->object:
         cur.execute(geochron_query, {'datasetid': self.datasetid})
         response = cur.fetchall()
         if response:
-            gc_ark = [dict(i) for i in response]
-            for i in gc_ark:
+            for i in response:
+                gc_ark = dict(i)
                 relatedIdentifiers.append({'relatedIdentifierType': 'ARK',
                                         'relationType': 'HasMetadata',
                                         #'relatedItemType': 'Dataset',
-                                        'relatedIdentifier': i['identifier']})
+                                        'relatedIdentifier': gc_ark.get('identifier')})
 
     return relatedIdentifiers

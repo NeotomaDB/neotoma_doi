@@ -5,10 +5,10 @@ from shapely import wkt
 def neo_location(con:psycopg2.connect, self)->object:
 
     geolocation = {'geoLocationPlace': None}
-
+    # Using 0.01 as the precision to give less precise coordinate box.
     loc_query = """
         SELECT
-            ST_AsText(ST_extent(st_buffer(st.geog::geometry, 0.001))) AS polygon
+            ST_AsText(ST_extent(st_buffer(st.geog::geometry, 0.01))) AS polygon
         from ndb.sites as st
         inner join ndb.collectionunits as cu on cu.siteid = st.siteid
         inner join ndb.datasets as ds on ds.collectionunitid = cu.collectionunitid

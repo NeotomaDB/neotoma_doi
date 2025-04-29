@@ -15,8 +15,8 @@ def test_mint_test_doi():
     new_doi.set_user(cred = credentials(DCITE))
     new_doi.test_mode()
     new_doi.mint_doi()
-    assert isinstance(new_doi.identifiers, list)
-    assert new_doi.identifiers[0].get('identifierType') == 'DOI'
+    assert isinstance(new_doi.identifiers, dict)
+    assert new_doi.identifiers.get('identifierType') == 'DOI'
     try:
         new_doi.meta = []
         new_doi.get_meta()
@@ -31,5 +31,22 @@ def test_update_doi():
     DCITE = loads(getenv('DCITE'))
     new_doi.set_user(cred = credentials(DCITE))
     new_doi.test_mode()
+    new_doi.get_meta()
+    old_version = new_doi.meta.get('version')
+    if not old_version:
+        old_version = '1.0'
+    else:
+        old_version = old_version.split('.')
+        old_version[1] = int(old_version[1]) + 1
+        old_version = '.'.join([str(i) for i in old_version])
     new_doi.mint_doi()
+    assert new_doi.meta.get('version') == old_version
     new_doi.data['titles'] = [{'title': 'This new phone.'}]
+    assert new_doi.data.get('titles')[0] == {'title': 'This new phone.'}
+    new_version = '1.1'
+    new_doi.update_doi()
+    new_doi.get_meta()
+    assert new_doi.meta.get('version') == new_version
+    assert new_doi.meta.get('titles') == [{'title': 'This new phone.'}]
+    assert new_doi
+    

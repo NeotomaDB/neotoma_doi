@@ -14,6 +14,9 @@ def neo_size(con:psycopg2.connect, self)->object:
     with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
         cur.execute(query, {'datasetid': self.datasetid})
         response = cur.fetchone()
-        download = getsizeof(dumps(response))
-        size = [f'{round(download/1000)} kB']
+        if response:
+            download = getsizeof(dumps(response))
+            size = [f'{round(download/1000)} kB']
+        else:
+            raise AttributeError("There is no frozen version of this dataset. Use the freeze_data()")
     return size
