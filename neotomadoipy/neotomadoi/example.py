@@ -11,36 +11,47 @@ DCITE = json.loads(os.getenv('DCITE'))
 
 datacite_meta = neotomadoi.credentials(DCITE)
 
-new_doi = neotomadoi.neotomaDOI(datasetid = 16, defaults = 'neotomadoi.yaml')
-new_doi.set_user(datacite_meta)
-
-new_doi.update()
-new_doi.validate()
-
 con = neotomadoi.neo_connect()
 
 query = """SELECT ds.datasetid
            FROM ndb.datasets AS ds
            LEFT JOIN doi.doimeta AS dom ON dom.datasetid = ds.datasetid
            WHERE dom.datasetid IS NULL
-           AND NOT ds.datatypeid = 1;"""
+           AND NOT ds.datasettypeid = 1;"""
 
 with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
     cur.execute(query)
     datasetids = cur.fetchall()
+    datasetids = [i[0] for i in datasetids]
+
+dotenv.load_dotenv()
+
+DCITE = json.loads(os.getenv('DCITE'))
+
+datacite_meta = neotomadoi.credentials(DCITE)
 
 for i in datasetids:
-    print(f'Working on {i[2]}, DOI: {i[0]}')
-    new_doi = neotomadoi.neotomaDOI(datasetid = i[2], defaults = 'neotomadoi.yaml')
+    print(f'Working on {i}')
+    new_doi = neotomadoi.neotomaDOI(datasetid = i, defaults = 'neotomadoi.yaml')
     new_doi.set_user(datacite_meta)
+    new_doi.test_mode()
     try:
         new_doi.update()
         new_doi.validate()
-        print(f'✔ Works for {i[2]}, DOI: {i[0]}')
-    except ValueError as e:
+        new_doi.mint_doi()
+        with open('minting_dois.log', 'a', encoding='UTF-8') as f:
+            json.dump({'datasetid': i,
+                        'doi': new_doi.identifiers,
+                        'meta': new_doi.meta}, f)
+            a = f.write('\n')
+        print(f'  Minted new DOI: {new_doi.identifiers.get('identifier')}')
+    except Exception as e:
         print('Whoops.')
         print(e)
-        break
+        with open('testing_dois.log', 'a', encoding='UTF-8') as f:
+            json.dump({'datasetid': i,
+                        'error': str(e)}, f)
+            a = f.write('\n')
 
 # Removing Datasets from the DOI public set:
 query = """SELECT doi.* FROM doi.doimeta AS doi
