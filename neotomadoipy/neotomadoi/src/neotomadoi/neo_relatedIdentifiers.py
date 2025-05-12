@@ -13,11 +13,10 @@ def neo_relatedIdentifiers(con:psycopg2.connect, self)->object:
     """
 
     with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-        cur.execute(ds_query, {'datasetid': self.datasetid})
+        _ = cur.execute(ds_query, {'datasetid': self.datasetid})
         response = cur.fetchall()
         if response:
             for i in response:
-                doi = dict(i)
                 if i[0] != self.identifiers.get('identifier'):
                     relatedIdentifiers.append({'relatedIdentifierType': 'DOI',
                                                'relationType': 'IsIdenticalTo',

@@ -1,5 +1,5 @@
 import yaml
-from datetime import datetime
+from datetime import datetime, timedelta
 import jsonschema
 from json import load
 from .neo_connect import neo_connect
@@ -17,15 +17,32 @@ from datacite import schema45
 import requests
 import psycopg2
 import psycopg2.extras
+from psycopg2.extras import Json
 import deepdiff.diff as dd
 from json import dumps
 from enum import Enum
-from typing import Literal
+from warnings import warn
 
 class testMode(Enum):
     test = 'https://api.test.datacite.org/dois/'
     prod = 'https://api.datacite.org/dois/'
 
+class activity:
+    def __init__(self, doi:str):
+        url = f'https://api.datacite.org/dois/{doi}/activities'
+        activities = requests.get(url)
+        if activities.status_code != 200:
+            raise requests.RequestException(f'Failed to obtain DOI activity: {activities.text}')
+        response = activities.json()
+        self.activity = response.get('data')
+    def __repr__(self):
+        dates = [datetime.strptime(i.get('attributes').get('prov:generatedAtTime'), '%Y-%m-%dT%H:%M:%S.%fZ') for i in self.activity]
+        if dates == []:
+            return "<activity class: No activity.>"
+        else:
+            return f"<activity class: {len(self.activity)} records - from: {min(dates).strftime('%Y-%m-%D')} to {max(dates).strftime('%Y-%m-%D')}>"
+    def __len__(self):
+        return len(self.activity)
 
 class credentials:
     def __init__(self, datacite_meta:dict):
@@ -73,10 +90,13 @@ class neotomaDOI:
         if self.schema is not None:
             return jsonschema.validate(instance=self.data, schema=self.schema)
         else:
-            return schema45.validator.validate(self.data)
+            try:
+                _ = schema45.validator.validate(self.data)
+            except Exception:
+                raise jsonschema.exceptions.ValidationError('There is an issue in the JSON object passed.')
     def update(self):
         if self.datasetid:
-            con = neo_connect()
+            con = neo_connect(test = (self.mode.name == 'test'))
             try:
                 self.data['creators'] = neo_creators(con, self)
                 self.data['contributors'] = neo_contributors(con, self)
@@ -88,7 +108,11 @@ class neotomaDOI:
                 self.data['dates'] = neo_dates(con, self)
                 self.data['sizes'] = neo_size(con, self)
                 self.data['descriptions'] = neo_description(con, self)
-            except Exception as e:
+                self.activity = None
+                if self.identifiers:
+                    self.get_activity()
+                    self.get_meta()
+            except Exception:
                 raise ValueError(f"Dataset {self.datasetid} is missing critical metadata values in the database.")
     def set_user(self, cred:credentials, mode: testMode = testMode.test):
         if not isinstance(cred, credentials):
@@ -106,14 +130,19 @@ class neotomaDOI:
     def get_meta(self):
         if self.identifiers:
             dois = self.identifiers.get('identifier')
-            doi_call = requests.get(self.mode.value + dois)
+            doi_call = requests.get(self.mode.value + dois,
+                                    headers = {'Content-Type': 'application/vnd.api+json'},
+                        auth = (self.client.mode(self.mode).get('username'),
+                                self.client.mode(self.mode).get('pw')))
             if doi_call.status_code == 200:
                 self.meta = doi_call.json().get('data').get('attributes')
+            else:
+                raise requests.exceptions.HTTPError(doi_call.json().get('errors'))
     def update_doi(self):
         outcome = None
         try:
             outcome = self.validate()
-        except Exception as e:
+        except Exception:
             outcome = True
         if outcome:
             print('Validation error. Check with the `validate()` method.')
@@ -142,27 +171,72 @@ class neotomaDOI:
             if modifier.status_code != 200:
                 raise requests.RequestException(f'Failed to modify DOI: {modifier.text}')
             else:
+                response = modifier.json()
+                assert response.get('data').get('id') == doi
                 self.meta = self.get_meta()
+                insertQuery = """INSERT INTO ndb.datasetdoi (datasetid, doi, published, recdatecreated)
+                                VALUES (%(datasetid)s, %(identifier)s, %(publish)s, NOW()::timestamp)
+                                ON CONFLICT (datasetid, doi)
+                                DO UPDATE
+                                SET recdatemodified=NOW()::timestamp
+                                RETURNING datasetid
+                                """
+                con = neo_connect(test = (self.mode.name == 'test'))
+                with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                    _ = cur.execute(insertQuery, {'datasetid': self.datasetid,
+                                            'identifier': self.identifiers.get('identifier'),
+                                            'publish': True})
+                    con.commit()
+                con = neo_connect(test = (self.mode.name == 'test'))
+                insertMeta = """INSERT INTO doi.doimeta(doi, meta, datasetid)
+                                VALUES (%(doi)s, %(meta)s, %(datasetid)s)
+                                ON CONFLICT (doi, datasetid) DO UPDATE
+                                    SET meta = EXCLUDED.meta
+                                    RETURNING datasetid;"""
+                with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                    _ = cur.execute(insertMeta, {'meta': Json(self.meta),
+                                            'datasetid': self.datasetid,
+                                            'doi': self.identifiers.get('identifier')})
+                    con.commit()
+                self.get_activity()
         except Exception as e:
             print(e)
-    def mint_doi(self):
+    def get_activity(self):
+        self.activity = activity(doi = self.identifiers.get('identifier'))
+    def mint_doi(self, publish = True):
         if self.identifiers:
-            self.update_doi()
-        else:
-            outcome = None
-            try:
-                self.data['version'] = '1.0'
-                outcome = self.validate()
-            except Exception as e:
-                outcome = True
-            if outcome:
-                print('Validation error. Check with the `validate()` method.')
+            self.get_meta()
+            if self.meta.get('isActive', False):
+                # If a DOI has been minted and the DOI is active, update the DOI.
+                self.update_doi()
                 return None
+            elif self.meta.get('isActive', True) is False and publish is True:
+                self.update_doi()
+                return None
+            else:
+                return None
+        outcome = None
+        try:
+            self.data['version'] = '1.0'
+            outcome = self.validate()
+        except Exception:
+            outcome = True
+        if outcome:
+            print('Validation error. Check with the `validate()` method.')
+            return None
         payload = {
             "type": "dois",
             "attributes": self.data
         }
-        payload['attributes']['event'] = "publish"
+        date = min([datetime.strptime(i.get('date'), '%Y-%m-%d') for i in self.data.get('dates') if i.get('dateType') == 'Submitted'])
+        if datetime.now() - date > timedelta(days = 2) and publish is True:
+            # We're publishing and the dataset is old enough.
+            payload['attributes']['event'] = "publish"
+        if self.meta.get('isActive', True) is False:
+            # The dataset has been drafted, but we want to publish now.
+            # If there is no `meta` element, then we continue to ignore it.
+            payload['attributes']['event'] = "publish"
+            payload['attributes']['doi'] = self.identifiers.get('identifier')
         payload['attributes']['prefix'] = self.client.mode(self.mode).get('handle')
         payload['attributes']['url'] = f'https://data.neotomadb.org/datasets/{self.datasetid}'
         payload['attributes']['version'] = '1.0'
@@ -177,17 +251,33 @@ class neotomaDOI:
             else:
                 #self.meta = created.json().get('data').get('attributes')
                 self.identifiers = {'identifier': created.json().get('data').get('id'),
-                                     'identifierType': 'DOI'}
+                                    'identifierType': 'DOI'}
                 self.get_meta()
-                insertQuery = """INSERT INTO ndb.datasetdoi (datasetid, doi, recdatecreated)
-                                 VALUES (%(datasetid)s, %(identifier)s, NOW()::timestamp)
-                                 RETURNING datasetid"""
-                con = neo_connect()
+                insertQuery = """INSERT INTO ndb.datasetdoi (datasetid, doi, published, recdatecreated)
+                                VALUES (%(datasetid)s, %(identifier)s, %(publish)s, NOW()::timestamp)
+                                ON CONFLICT (datasetid, doi)
+                                DO UPDATE
+                                SET recdatemodified=NOW()::timestamp
+                                RETURNING datasetid
+                                """
+                con = neo_connect(test = (self.mode.name == 'test'))
                 with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-                    cur.execute(insertQuery, {'datasetid': self.datasetid,
-                                              'identifier': self.identifiers[0].get('identifier')})
-        except Exception as e:
-            print(e)
+                    _ = cur.execute(insertQuery, {'datasetid': self.datasetid,
+                                            'identifier': self.identifiers.get('identifier'),
+                                            'publish': publish})
+                    con.commit()
+                insertMeta = """INSERT INTO doi.doimeta(doi, meta, datasetid)
+                                VALUES (%(doi)s, %(meta)s, %(datasetid)s)
+                                ON CONFLICT (doi, datasetid) DO NOTHING;"""
+                with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                    _ = cur.execute(insertMeta, {'meta': Json(self.meta),
+                                            'datasetid': self.datasetid,
+                                            'doi': self.identifiers.get('identifier')})
+                    con.commit()
+                self.get_activity()
+        except Exception:
+            raise ValueError("Could not mint the dataset.")
+        return None
     def meta_diff(self):
         current = self.data
         old = self.meta[0]
@@ -199,7 +289,7 @@ class neotomaDOI:
             outcome = None
             try:
                 outcome = self.validate()
-            except Exception as e:
+            except Exception:
                 outcome = True
             if outcome:
                 print('Validation error. Check with the `validate()` method.')
@@ -226,15 +316,16 @@ class neotomaDOI:
                 insertQuery = """INSERT INTO ndb.datasetdoi (datasetid, doi, recdatecreated)
                                  VALUES (%(datasetid)s, %(identifier)s, NOW()::timestamp)
                                  RETURNING datasetid"""
-                con = neo_connect()
+                con = neo_connect(test = (self.mode.name == 'test'))
                 with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
                     cur.execute(insertQuery, {'datasetid': self.datasetid,
                                               'identifier': self.identifiers[0].get('identifier')})
+                con.commit()
         except Exception as e:
             print(e)
     def freeze_data(self, con, force:bool = False):
         if self.datasetid:
-            con = neo_connect()
+            con = neo_connect(test = (self.mode.name == 'test'))
             query = """
                 SELECT * FROM doi.frozen
                 WHERE datasetid = %(datasetid)s"""
@@ -255,9 +346,10 @@ class neotomaDOI:
                     cur.execute("SELECT * FROM doi.frozen WHERE datasetid = %(datasetid)s;",
                                 {'datasetid': self.datasetid})
                     frozen_result = cur.fetchall()
+                con.commit()
                 if len(frozen_result) > 0:
                     print("Dataset frozen.")
             else:
-                raise ValueError("This dataset has already been frozen in the database. You must override manually.")
+                warn("This dataset has already been frozen in the database. You must override manually.", UserWarning)
         else:
             raise ValueError("Dataset must have a valid datasetid and be in Neotoma to freeze the dataset.")

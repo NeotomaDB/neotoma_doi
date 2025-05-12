@@ -37,6 +37,6 @@ def neo_creators(con:psycopg2.connect, self)->list:
             if creator.get('name') is None:
                 creator['name'] = 'None listed'
             if not all([i.get('nameIdentifier') for i in creator.get('nameIdentifiers')]):
-                out = creator.pop('nameIdentifiers', None)
+                _ = creator.pop('nameIdentifiers', None)
             creators.append(creator)
     return creators

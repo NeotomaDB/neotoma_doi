@@ -15,12 +15,21 @@ def neo_dates(con:psycopg2.connect, self)->object:
             WHERE ds.datasetid = %(datasetid)s
             ORDER BY ds.submissiondate
             OFFSET 1
+        ),
+        issued AS (
+            SELECT dsdoi.recdatecreated as date, 'Issued'::text
+            FROM ndb.datasetdoi AS dsdoi
+            WHERE dsdoi.datasetid = %(datasetid)s
+            ORDER BY dsdoi.recdatecreated
+            LIMIT 1
         )
         SELECT DISTINCT *
         FROM (
             (SELECT * FROM creation)
         UNION ALL
-        (SELECT * FROM resub)) AS dates
+        (SELECT * FROM resub)
+        UNION ALL
+        (SELECT * FROM issued)) AS dates
         WHERE date is not NULL;
     """
 

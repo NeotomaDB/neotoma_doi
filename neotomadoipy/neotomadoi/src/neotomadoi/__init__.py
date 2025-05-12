@@ -3,6 +3,7 @@ from .neo_creators import neo_creators as neo_creators
 from .neotomaDOI import neotomaDOI as neotomaDOI
 from .neotomaDOI import testMode as testMode
 from .neotomaDOI import credentials as credentials
+from .neotomaDOI import activity
 from .neo_contributors import neo_contributors as neo_contributors
 from .neo_subjects import neo_subjects as neo_subjects
 from .neo_title import neo_title as neo_title

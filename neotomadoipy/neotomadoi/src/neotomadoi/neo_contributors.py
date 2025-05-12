@@ -80,6 +80,6 @@ def neo_contributors(con:psycopg2.connect, self)->list:
         for i in response:
             creator = dict(i)
             if not all([i.get('nameIdentifier') for i in creator.get('nameIdentifiers')]):
-                out = creator.pop('nameIdentifiers', None)
+                _ = creator.pop('nameIdentifiers', None)
             contributors.append(creator)
     return contributors

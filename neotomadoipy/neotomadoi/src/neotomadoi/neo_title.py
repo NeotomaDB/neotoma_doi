@@ -14,5 +14,5 @@ def neo_title(con:psycopg2.connect, self)->object:
     with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
         cur.execute(query, {'datasetid': self.datasetid})
         response = cur.fetchone()
-        title = {'title': response[0]}
+        title = {'title': response[0], 'lang': 'en-us'}
     return title
