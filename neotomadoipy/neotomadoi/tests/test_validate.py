@@ -1,18 +1,19 @@
 from neotomadoi import neotomaDOI
 from pytest import raises, fail
+from jsonschema.exceptions import ValidationError
 
 DATASETID = 16
 
 def test_schema_validate():
     new_doi = neotomaDOI(datasetid = DATASETID, defaults = 'neotomadoi.yaml')
-    with raises(Exception, match = "Failed validating 'type' in schema"):
+    with raises(ValidationError, match = "There is an issue"):
         new_doi.validate() 
     try:
         new_doi.update()
     except Exception:
         fail(f"Unexpected validation error with dataset {DATASETID}")
     new_doi.data['descriptions'][0]['lang'] = 50
-    with raises(Exception, match = "Failed validating 'type' in schema"):
+    with raises(ValidationError, match = "There is an issue"):
         new_doi.validate()
 
 def test_duplicate_dois():

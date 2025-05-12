@@ -44,9 +44,24 @@ def test_update_doi():
     new_doi.data['titles'] = [{'title': 'This new phone.'}]
     assert new_doi.data.get('titles')[0] == {'title': 'This new phone.'}
     new_version = '1.1'
-    new_doi.update_doi()
+    new_doi.mint_doi()
     new_doi.get_meta()
     assert new_doi.meta.get('version') == new_version
     assert new_doi.meta.get('titles') == [{'title': 'This new phone.'}]
     assert new_doi
+    
+def test_draft_doi():
+    new_doi = neotomaDOI(datasetid = DATASETID, defaults = 'neotomadoi.yaml')
+    new_doi.update()
+    new_doi.identifiers = None
+    load_dotenv()
+    DCITE = loads(getenv('DCITE'))
+    new_doi.set_user(cred = credentials(DCITE))
+    new_doi.test_mode()
+    new_doi.mint_doi(publish = False)
+    assert new_doi.identifiers
+    assert new_doi.meta.get('isActive') is False
+    new_doi.meta = None
+    new_doi.get_meta()
+    assert new_doi.meta.get('isActive') is False
     

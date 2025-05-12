@@ -1,5 +1,4 @@
-import pytest
-from neotomadoi import neotomaDOI, neo_connect, testMode, credentials
+from neotomadoi import neotomaDOI, neo_connect, testMode
 from datetime import datetime
 from psycopg2.extensions import connection
 

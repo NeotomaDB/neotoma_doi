@@ -1,18 +1,16 @@
-from neotomadoi import neotomaDOI, neo_connect, credentials, neo_size
+from neotomadoi import neotomaDOI, neo_connect, neo_size
 from dotenv import load_dotenv
-import os
-from json import loads
-from os import getenv
+from pytest import raises
 
-DATASETID = 10443
 
 def test_size():
-
+    DATASETID = 10443
     load_dotenv()
-
-    DCITE = loads(getenv('DCITE'))
-    datacite_meta = credentials(DCITE)
 
     con = neo_connect()
     new_doi = neotomaDOI(datasetid = DATASETID, defaults = 'neotomadoi.yaml')
     aa = neo_size(con, new_doi)
+    assert isinstance(aa, list)
+    new_doi = neotomaDOI(datasetid = 700000, defaults = 'neotomadoi.yaml')
+    with raises(Exception, match = "no frozen version"):
+        neo_size(con, new_doi)

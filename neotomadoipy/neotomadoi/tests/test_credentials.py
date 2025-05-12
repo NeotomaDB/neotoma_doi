@@ -2,9 +2,6 @@ import pytest
 from neotomadoi import neotomaDOI, testMode, credentials
 from random import choices
 from string import digits, ascii_lowercase
-from dotenv import load_dotenv
-from json import loads
-from os import getenv
 
 DATASETID = 16
 
@@ -41,7 +38,7 @@ def test_assign_creds():
 
 def test_change_mode():
     new_doi = neotomaDOI(datasetid = DATASETID, defaults = 'neotomadoi.yaml')
-    with pytest.raises(Exception) as e_info:
+    with pytest.raises(Exception):
         new_doi.prod_mode()
     DCITE = {"user": ''.join(choices(ascii_lowercase + digits, k=6)),
              "mode": {"test": {"handle": ''.join(choices(ascii_lowercase + digits, k=6)),
