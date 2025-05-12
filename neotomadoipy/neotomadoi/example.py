@@ -1,60 +1,67 @@
 import neotomadoi
-import dotenv
+from dotenv import load_dotenv
 import os
 import json
 import psycopg2
 import psycopg2.extras
 
-dotenv.load_dotenv()
+load_dotenv()
 
 DCITE = json.loads(os.getenv('DCITE'))
 
 datacite_meta = neotomadoi.credentials(DCITE)
 
-con = neotomadoi.neo_connect()
+con = neotomadoi.neo_connect(test = False)
 
-query = """SELECT ds.datasetid
+# All datasets that are between two months and two days old.
+# Datasets cannot be geochronologic datasets.
+query = """SELECT DISTINCT ds.datasetid
            FROM ndb.datasets AS ds
-           LEFT JOIN doi.doimeta AS dom ON dom.datasetid = ds.datasetid
-           WHERE dom.datasetid IS NULL
-           AND NOT ds.datasettypeid = 1;"""
+           LEFT JOIN ndb.datasetdoi AS dsdoi ON dsdoi.datasetid = ds.datasetid
+           WHERE NOT ds.datasettypeid = 1;"""
 
 with con.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
     cur.execute(query)
     datasetids = cur.fetchall()
     datasetids = [i[0] for i in datasetids]
 
-dotenv.load_dotenv()
-
-DCITE = json.loads(os.getenv('DCITE'))
-
-datacite_meta = neotomadoi.credentials(DCITE)
-
 for i in datasetids:
     print(f'Working on {i}')
     new_doi = neotomadoi.neotomaDOI(datasetid = i, defaults = 'neotomadoi.yaml')
     new_doi.set_user(datacite_meta)
-    new_doi.test_mode()
+    new_doi.prod_mode()
     try:
-        new_doi.update()
+        try:
+            new_doi.update()
+        except ValueError as e:
+            if 'critical' in str(e):
+                new_doi.freeze_data(con)
+                new_doi.update()
         new_doi.validate()
-        new_doi.mint_doi()
-        with open('minting_dois.log', 'a', encoding='UTF-8') as f:
-            json.dump({'datasetid': i,
-                        'doi': new_doi.identifiers,
-                        'meta': new_doi.meta}, f)
-            a = f.write('\n')
-        print(f'  Minted new DOI: {new_doi.identifiers.get('identifier')}')
+        new_doi.get_activity()
+        old_activity = len(new_doi.activity)  
+        new_doi.mint_doi(publish = True)
+        if old_activity == 0:
+            with open('minting_dois.log', 'a', encoding='UTF-8') as f:
+                new_doi.get_meta()
+                json.dump({'datasetid': i,
+                            'doi': new_doi.identifiers,
+                            'meta': new_doi.meta}, f)
+                a = f.write('\n')
+            print(f'  Minted new DOI: {new_doi.identifiers.get('identifier')}')
+        elif old_activity > 0:
+            with open('updating_dois.log', 'a', encoding='UTF-8') as f:
+                new_doi.get_meta()
+                json.dump({'datasetid': i,
+                            'doi': new_doi.identifiers,
+                            'meta': new_doi.meta}, f)
+                a = f.write('\n')
+            print(f'  Updated DOI: {new_doi.identifiers.get('identifier')}')
     except Exception as e:
         print('Whoops.')
         print(e)
-        with open('testing_dois.log', 'a', encoding='UTF-8') as f:
+        with open('failing_dois.log', 'a', encoding='UTF-8') as f:
             json.dump({'datasetid': i,
                         'error': str(e)}, f)
             a = f.write('\n')
-
-# Removing Datasets from the DOI public set:
-query = """SELECT doi.* FROM doi.doimeta AS doi
-           LEFT join ndb.datasets AS ds ON ds.datasetid = doi.datasetid
-           WHERE ds.datasetid IS NULL;"""
 
