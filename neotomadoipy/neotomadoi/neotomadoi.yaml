@@ -4,6 +4,10 @@ rightsList:
     rightsUri: http://creativecommons.org/licenses/by/4.0/deed.en_US
     schemeUri: https://spdx.org/licenses/
     rightsIdentifierScheme: SPDX
+  - rights: TK Open to Collaboration (TK CB)
+    rightsUri: https://localcontexts.org/notice/open-to-collaborate/
+    schemeUri: https://localcontexts.org
+    rightsIdentifierScheme: Local Contexts
 schemaVersion: "http://datacite.org/schema/kernel-4"
 types:
   resourceType: Dataset/Paleoecological Sample Data
